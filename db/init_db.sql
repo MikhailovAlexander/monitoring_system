@@ -30,6 +30,9 @@ CREATE TABLE fact_check (
 	FOREIGN KEY (user_script_link_id) REFERENCES user_script_link(user_script_link_id)
 );
 
+CREATE UNIQUE INDEX uidx_fact_check_composite
+on fact_check (fact_check_date, user_script_link_id);
+
 CREATE TABLE object_type (
 	object_type_id integer PRIMARY KEY AUTOINCREMENT,
 	object_type_name text
@@ -59,8 +62,11 @@ CREATE TABLE object (
 	FOREIGN KEY (error_level_id) REFERENCES error_level(error_level_id)
 );
 
+CREATE UNIQUE INDEX uidx_object_composite
+on object (object_name, object_identifier, fact_check_id, error_level_id);
+
 CREATE TABLE user_script_link (
-	user_script_link integer PRIMARY KEY AUTOINCREMENT,
+	user_script_link_id integer PRIMARY KEY AUTOINCREMENT,
 	user_id integer,
 	script_id integer,
 	user_script_link_beg_date datetime,
@@ -69,3 +75,5 @@ CREATE TABLE user_script_link (
 	FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
+CREATE UNIQUE INDEX uidx_user_script_link_composite
+on user_script_link (user_id, script_id, user_script_link_beg_date);
