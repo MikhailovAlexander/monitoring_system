@@ -11,3 +11,5 @@ def test(driver):
 
 driver = SqliteDbDriver('./db/test_db.db', './db/init_db.sql')
 test(driver)
+driver.close_all()
+
