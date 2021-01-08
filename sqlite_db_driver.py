@@ -34,18 +34,23 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
             print('БД уже существует')  # throw exception
 
     def close_cursor(self):
-        self._cursor.close()
+        if self._cursor:
+            self._cursor.close()
 
     def close_connection(self):
-        self._conn.close()
+        if self._conn:
+            self._conn.close()
 
     def close_all(self):
         self.close_cursor()
         self.close_connection()
 
     def chk_conn(self):
-        try:
-            self._conn.cursor()
-            return True
-        except sqlite3.Error:
+        if self._conn:
+            try:
+                self._conn.cursor()
+                return True
+            except sqlite3.Error:
+                return False
+        else:
             return False
