@@ -33,19 +33,8 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         else:
             print('БД уже существует')  # throw exception
 
-    def close_cursor(self):
-        if self._cursor:
-            self._cursor.close()
-
-    def close_connection(self):
-        if self._conn:
-            self._conn.close()
-
-    def close_all(self):
-        self.close_cursor()
-        self.close_connection()
-
     def chk_conn(self):
+        """Проверка соединения с БД"""
         if self._conn:
             try:
                 self._conn.cursor()
@@ -54,3 +43,15 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
                 return False
         else:
             return False
+        
+    def close_cursor(self):
+        """Метод для закрытия курсора, если он существует"""
+        if self._cursor:
+            self._cursor.close()
+
+    def close_connection(self):
+        """Метод для закрытия соединения. Закрывает кусор и соединение,
+           если они существуют"""
+        self.close_cursor()
+        if self._conn:
+            self._conn.close()
