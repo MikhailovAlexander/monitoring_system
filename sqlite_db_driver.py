@@ -21,7 +21,7 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
     def init_db(self):
         if not os.path.exists(self._db_file_path):
             if os.path.exists(self._db_script_path):
-                with open(self._db_script_path, 'w', encoding='utf-8') as script:
+                with open(self._db_script_path, 'r', encoding='utf-8') as script:
                     script_text = script.read()
                 try:
                     if self.get_connection():
