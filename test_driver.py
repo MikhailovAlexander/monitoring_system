@@ -9,5 +9,5 @@ def test(driver):
         print('db already exist')
 
 
-driver = SqliteDbDriver('./db/test_db', './db/init_db.sql')
+driver = SqliteDbDriver('./db/test_db.db', './db/init_db.sql')
 test(driver)
