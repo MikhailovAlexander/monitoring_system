@@ -78,3 +78,33 @@ CREATE TABLE user_script_link (
 
 CREATE UNIQUE INDEX uidx_user_script_link_composite
 on user_script_link (user_id, script_id, user_script_link_beg_date);
+
+INSERT INTO user(user_name) VALUES('admin'),('test');
+INSERT INTO object_type(object_type_name) VALUES('Файл'),('Запись в БД'),('Объект в БД');
+INSERT INTO error_level(error_level_name) VALUES('trivial'),('warning'),('error');
+INSERT INTO script(
+	script_name,
+	script_description,
+	script_author,
+	script_beg_date,
+	script_hash,
+	object_type_id) 
+	VALUES(
+		'TestCheck',
+		'TestCheck',
+		'AV Mikhaylov',
+		CURRENT_TIMESTAMP,
+		CAST(1 as BLOB),
+		(SELECT object_type_id FROM object_type WHERE object_type_name = 'Файл')
+	);
+INSERT INTO user_script_link(
+	user_id,
+	script_id,
+	user_script_link_beg_date) 
+	VALUES
+		((SELECT user_id FROM user WHERE user_name = 'admin'),
+		(SELECT script_id FROM script WHERE script_name = 'TestCheck'),
+		CURRENT_TIMESTAMP),
+		((SELECT user_id FROM user WHERE user_name = 'test'),
+		(SELECT script_id FROM script WHERE script_name = 'TestCheck'),
+		CURRENT_TIMESTAMP);
