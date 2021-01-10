@@ -60,7 +60,7 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         self._cursor.execute("insert into user(user_name) VALUES(?)",
                              (user_name,))
                              
-    def user_upd(self, user_id, u_name):
+    def user_upd(self, user_id, user_name):
         """Обновление записи в таблице user"""
         self._cursor.execute("update user set user_name = ? where user_id = ?",
                              (user_name, user_id))
@@ -73,7 +73,7 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
     def user_rd(self, user_id):
         """Выбрать запись из таблицы user"""
         self._cursor.execute("select user_id, user_name from user where user_id = ?",
-                             (user_name, user_id))
+                             (user_id, ))
         return self._cursor.fetchone()
 
     def user_rda(self):
