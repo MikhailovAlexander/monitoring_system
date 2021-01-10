@@ -55,3 +55,28 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         self.close_cursor()
         if self._conn:
             self._conn.close()
+    def user_ins(self, user_name):
+        """Добавление записи в таблицу user"""
+        self._cursor.execute("insert into user(user_name) VALUES(?)",
+                             (user_name,))
+                             
+    def user_upd(self, user_id, u_name):
+        """Обновление записи в таблице user"""
+        self._cursor.execute("update user set user_name = ? where user_id = ?",
+                             (user_name, user_id))
+                             
+    def user_dlt(self, user_id):
+        """Удаление записи из таблицы user"""
+        self._cursor.execute("delete from user where user_id = ?",
+                             (user_id, ))
+
+    def user_rd(self, user_id):
+        """Выбрать запись из таблицы user"""
+        self._cursor.execute("select user_id, user_name from user where user_id = ?",
+                             (user_name, user_id))
+        return self._cursor.fetchone()
+
+    def user_rda(self):
+        """Выбрать все записи из таблицы user"""
+        self._cursor.execute("select user_id, user_name from user")
+        return self._cursor.fetchall()
