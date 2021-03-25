@@ -4,14 +4,16 @@ import os
 
 
 class SqliteDbDriver(base_db_driver.BaseDbDriver):
-    def __init__(self, db_file_path, db_script_path):
-        self._db_file_path = db_file_path
-        self._db_script_path = db_script_path
+    def __init__(self, db_config):
+        self._db_file_path = db_config["db_path"]
+        self._db_script_path = db_config["init_script_path"]
+        self._iso_level = db_config["isolation_level"]
         self._conn = None
         self._cursor = None
 
     def get_connection(self):
-        self._conn = sqlite3.connect(self._db_file_path, isolation_level=None)
+        self._conn = sqlite3.connect(self._db_file_path,
+                                     isolation_level=self._iso_level)
         self._cursor = self._conn.cursor()
         return self._cursor is not None
 

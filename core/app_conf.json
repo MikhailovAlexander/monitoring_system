@@ -1,0 +1,9 @@
+{
+   "db_conf":{
+      "db_driver_module":"sqlite_db_driver",
+      "db_driver_class":"SqliteDbDriver",
+      "db_path":"./db/test_db.db",
+      "init_script_path":"./db/init_db.sql",
+      "isolation_level": null
+   }
+}
