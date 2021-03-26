@@ -26,7 +26,8 @@ def get_logger(log_config):
     return logging.getLogger(__name__)
 
 
-logger = get_logger(load_json(LOG_CONF_FILE_PATH))
+log_config = load_json(LOG_CONF_FILE_PATH)
+logger = get_logger(log_config)
 logger.info('logger was created')
 
 app_config = load_json(APP_CONF_FILE_PATH)
@@ -42,7 +43,7 @@ if not driver.is_db_exist():
     logger.info('DB was created')
 driver.get_connection()
 logger.info('DB connection was opened')
-root = MainForm(driver)
+root = MainForm(driver, log_config)
 logger.info('MainForm was started')
 root.mainloop()
 logger.info('MainForm was closed')

@@ -1,5 +1,8 @@
+import logging
+import logging.config
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 
 class EntryForm(tk.Toplevel):
@@ -67,9 +70,9 @@ class Table(tk.Frame):
         for row in rows:
             self._table.insert('', tk.END, values=tuple(row))
 
-        scrolltable = tk.Scrollbar(self, command=self._table.yview)
-        self._table.configure(yscrollcommand=scrolltable.set)
-        scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
+        scroll = tk.Scrollbar(self, command=self._table.yview)
+        self._table.configure(yscrollcommand=scroll.set)
+        scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self._table.pack(expand=tk.YES, fill=tk.BOTH, anchor="nw")
 
     @property
@@ -81,8 +84,12 @@ class Table(tk.Frame):
 class MainForm(tk.Tk):
     """Main widget for the program"""
 
-    def __init__(self, driver):
+    def __init__(self, driver, log_config):
         super().__init__()
+        self._logger_conf = log_config
+        logging.config.dictConfig(log_config)
+        self._logger = logging.getLogger(__name__)
+        self._logger.info('Creating MainForm')
         self.attributes('-alpha', 0.0)  # make window transparent
         self._driver = driver
         self._user_id = None
@@ -97,10 +104,12 @@ class MainForm(tk.Tk):
         self._create_form()
 
     def _run_entry_form(self):
+        self._logger.info('Running EntryForm')
         ef = EntryForm(self, self._user_dict)
         self._user_id = ef.get_user_id()
 
     def _create_form(self):
+        self._logger.info('Adding widgets')
         self.title("Monitoring system")
         fr_cur_user = tk.Frame(self)
         fr_cur_user.pack(side="top", fill=tk.Y)
@@ -122,6 +131,7 @@ class MainForm(tk.Tk):
         nb.add(f3, text='page3')
 
     def _get_user_tab(self):
+        self._logger.info('Creating user tab')
         users_rec = self._driver.user_rda()
         fr_user_tab = tk.Frame(self)
         fr_controls = tk.Frame(fr_user_tab)
@@ -158,9 +168,12 @@ class MainForm(tk.Tk):
             if self._user_dict[value] == self._user_id:
                 return index
             index += 1
+        self._logger.error(f"Current user (id {self._user_id}) "
+                           f"was not found in dictionary")
         raise RuntimeError("Ошибка определения текущего пользователя")
 
     def _add_menu_bar(self):
+        self._logger.info('Adding menu bar')
         menu = tk.Menu(self)
         new_item = tk.Menu(menu)
         new_item.add_command(label='Новый')
@@ -174,8 +187,14 @@ class MainForm(tk.Tk):
         self.config(menu=menu)
 
     def _read_users(self):
-        users_rec = self._driver.user_rda()
-        return {rec[1]: rec[0] for rec in users_rec}
+        try:
+            users_rec = self._driver.user_rda()
+            return {rec[1]: rec[0] for rec in users_rec}
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения пользователей из БД: {ex}")
+            return {}
 
     def _user_add(self):
         pass
