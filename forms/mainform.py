@@ -285,6 +285,11 @@ class MainForm(tk.Tk):
         if users_rows:
             self._tb_user.insert(users_rows)
 
+    def _refresh_cbx_users(self):
+        self._user_dict = self._read_users()
+        self._cbx_users['values'] = list(self._user_dict.keys())
+        self._cbx_users.current(self._get_user_index())
+
     def _user_add(self):
         self._logger.info('User adding is running')
         input_f = InputForm(self._log_config, self,
@@ -295,7 +300,7 @@ class MainForm(tk.Tk):
             try:
                 self._driver.user_ins(user_name)
                 self._refresh_tb_user()
-                # TODO: add refreshing self._cbx_users
+                self._refresh_cbx_users()
             except Exception as ex:
                 self._logger.exception(ex)
                 messagebox.showerror("Data base error",
@@ -319,7 +324,7 @@ class MainForm(tk.Tk):
             try:
                 self._driver.user_upd(user_id, user_name)
                 self._refresh_tb_user()
-                # TODO: add refreshing self._cbx_users
+                self._refresh_cbx_users()
             except Exception as ex:
                 self._logger.exception(ex)
                 messagebox.showerror("Data base error",
@@ -344,7 +349,7 @@ class MainForm(tk.Tk):
             try:
                 self._driver.user_dlt(user_id)
                 self._refresh_tb_user()
-                # TODO: add refreshing self._cbx_users
+                self._refresh_cbx_users()
             except Exception as ex:
                 self._logger.exception(ex)
                 messagebox.showerror("Data base error",
