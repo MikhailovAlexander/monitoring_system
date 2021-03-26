@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 
+from forms.pagination import Pagination, pagination_style3
+
 
 class InputForm(tk.Toplevel):
     """widget for user text input"""
@@ -178,6 +180,7 @@ class MainForm(tk.Tk):
             return
         self.after(0, self.attributes, "-alpha", 1.0)  # back to normal
         self.attributes("-topmost", True)
+        self._limit_tb_user = 2
         self._create_form()
 
     def _run_entry_form(self):
@@ -209,7 +212,6 @@ class MainForm(tk.Tk):
 
     def _get_user_tab(self):
         self._logger.info('Creating user tab')
-        users_rec = self._driver.user_rda()
         fr_user_tab = tk.Frame(self)
         fr_controls = tk.Frame(fr_user_tab)
         fr_controls.pack(side="left", fill="y", padx=10)
@@ -234,10 +236,35 @@ class MainForm(tk.Tk):
         fr_user_pg.pack(side="top", fill="both", expand=True)
         lbl_user_pg = tk.Label(fr_user_pg, text="Пэйджинг")
         lbl_user_pg.pack(fill="x", expand=True)
-        self._tb_user = Table(fr_user_tab, headings=('id', 'Имя'),
-                              rows=users_rec)
+        row_cnt = 0
+        try:
+            row_cnt = self._driver.user_cnt()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения пользователей из БД: {ex}")
+        page_cnt = row_cnt // self._limit_tb_user + \
+                   (0 if row_cnt / self._limit_tb_user == 0 else 1)
+        self._pgn_user = Pagination(fr_user_pg, 3, page_cnt,
+                                    command=self._load_user_page,
+                                    pagination_style=pagination_style3)
+        self._pgn_user.pack(fill="x", expand=True)
+        self._tb_user = Table(fr_user_tab, headings=('id', 'Имя'))
         self._tb_user.pack(side="right", fill="both", expand=True)
+        self._load_user_page(1)
         return fr_user_tab
+
+    def _load_user_page(self, page_num):
+        offset = (page_num - 1) * self._limit_tb_user
+        try:
+            users_rec = self._driver.user_rd_pg(self._limit_tb_user, offset)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения пользователей из БД: {ex}")
+        self._tb_user.clear()
+        if users_rec:
+            self._tb_user.insert(users_rec)
 
     def _get_user_index(self):
         index = 0

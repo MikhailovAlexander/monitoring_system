@@ -59,6 +59,10 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         if self._conn:
             self._conn.close()
 
+    def _table_cnt(self, table_name):
+        self._cursor.execute(f"select count(*) from {table_name}")
+        return int(self._cursor.fetchone()[0])
+
     def user_ins(self, user_name):
         """Добавление записи в таблицу user"""
         self._cursor.execute("insert into user(user_name) VALUES(?)",
@@ -85,3 +89,23 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         """Выбрать все записи из таблицы user"""
         self._cursor.execute("select user_id, user_name from user")
         return self._cursor.fetchall()
+
+    def user_rd_pg(self, limit, offset):
+        """Reads a part of records from user table for the pagination
+
+        :param limit - row count constraint
+        :param offset - row count for shifting the results
+        :return set of records from user table
+
+        """
+        self._cursor.execute(
+            "select user_id, user_name from user limit ? offset ?",
+            (limit, offset))
+        return self._cursor.fetchall()
+
+    def user_cnt(self):
+        """
+        :return count of records from user table
+        """
+        return self._table_cnt("user")
+

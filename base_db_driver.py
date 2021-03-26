@@ -48,3 +48,19 @@ class BaseDbDriver(metaclass=ABCMeta):
     def user_rda(self):
         """Выбрать все записи из таблицы user"""
         pass
+
+    def user_rd_pg(self, limit, offset):
+        """Reads a part of records from user table for the pagination
+
+        :param limit - row count constraint
+        :param offset - row count for shifting the results
+        :return set of records from user table
+
+        """
+        pass
+
+    def user_cnt(self):
+        """
+        :return count of records from user table
+        """
+        pass
