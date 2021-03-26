@@ -5,6 +5,59 @@ from tkinter import ttk
 from tkinter import messagebox
 
 
+class InputForm(tk.Toplevel):
+    """widget for user text input"""
+
+    def __init__(self, log_config, root, lbl_text, btn_entry_txt='OK',
+                 btn_exit_txt='Отмена', default_value=None):
+        logging.config.dictConfig(log_config)
+        self._logger = logging.getLogger(__name__)
+        self._logger.info('Creating InputForm')
+        super().__init__(root)
+        self.grab_set()
+        self._result = None
+        self._create_form(lbl_text, btn_entry_txt, btn_exit_txt, default_value)
+        self.attributes("-topmost", True)
+        self.bind('<Return>',  self._btn_entry)
+        self.bind('<Escape>',  self._btn_exit)
+
+    def _create_form(self, lbl_text, btn_entry_txt, btn_exit_txt,
+                     default_value):
+        self.title("Ввод данных")
+        lbl_description = tk.Label(self, text=lbl_text)
+        lbl_description.grid(row=0, column=0, columnspan=2, sticky="we")
+        self._entry = tk.Entry(self, width=50)
+        if default_value:
+            self._entry.insert(0, default_value)
+        self._entry.focus_set()
+        self._entry.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        btn_entry = tk.Button(self, text=btn_entry_txt, command=self._btn_entry)
+        btn_entry.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        btn_exit = tk.Button(self, text=btn_exit_txt, command=self._btn_exit)
+        btn_exit.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+
+    def _btn_entry(self, event=None):
+        self._logger.info('Enter on InputForm')
+        value = self._entry.get()
+        if value and str(value).strip():
+            self._result = self._entry.get()
+            self.destroy()
+            return
+        self._logger.warning('Text box is empty')
+        messagebox.showerror("input error", "Поле ввода не заполнено")
+
+    def _btn_exit(self, event=None):
+        self._logger.info('Exit InputForm')
+        self._result = None
+        self.destroy()
+
+    def get_result(self):
+        """Return text, which was inserted in textbox"""
+        self._logger.info('Returning result from InputForm')
+        self.wait_window()
+        return self._result
+
+
 class EntryForm(tk.Toplevel):
     """widget for user selection during program launch"""
 
@@ -80,16 +133,40 @@ class Table(tk.Frame):
         if self._table.focus():
             return self._table.item(self._table.focus())['values'][0]
 
+    def get_selected_value(self, column_idx):
+        """
+        Returns value from the selected row and the specified column
+
+        :param column_idx: Column index to return the value from
+        :return: value from the selected row and the specified column
+
+        """
+        if self._table.focus() and column_idx < len(self._table["columns"]):
+            return self._table.item(self._table.focus())['values'][column_idx]
+
+    def clear(self):
+        """Removes all rows from table"""
+        self._table.delete(*self._table.get_children())
+
+    def insert(self, rows):
+        """insert new rows in the end of table
+
+        :param rows: list of tuples with values to insert
+
+        """
+        for row in rows:
+            self._table.insert('', tk.END, values=tuple(row))
+
 
 class MainForm(tk.Tk):
     """Main widget for the program"""
 
     def __init__(self, driver, log_config):
-        super().__init__()
-        self._logger_conf = log_config
+        self._log_config = log_config
         logging.config.dictConfig(log_config)
         self._logger = logging.getLogger(__name__)
         self._logger.info('Creating MainForm')
+        super().__init__()
         self.attributes('-alpha', 0.0)  # make window transparent
         self._driver = driver
         self._user_id = None
@@ -196,14 +273,83 @@ class MainForm(tk.Tk):
                                  f"Ошибка чтения пользователей из БД: {ex}")
             return {}
 
+    def _refresh_tb_user(self):
+        self._tb_user.clear()
+        try:
+            users_rows = self._driver.user_rda()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 "Ошибка чтения пользователей из БД: "
+                                 f"{ex}")
+        if users_rows:
+            self._tb_user.insert(users_rows)
+
     def _user_add(self):
-        pass
+        self._logger.info('User adding is running')
+        input_f = InputForm(self._log_config, self,
+                            "Ведите имя нового пользователя",
+                            btn_entry_txt='Сохранить', btn_exit_txt='Выйти')
+        user_name = input_f.get_result()
+        if user_name:
+            try:
+                self._driver.user_ins(user_name)
+                self._refresh_tb_user()
+                # TODO: add refreshing self._cbx_users
+            except Exception as ex:
+                self._logger.exception(ex)
+                messagebox.showerror("Data base error",
+                                     "Ошибка добавления пользователя в БД: "
+                                     f"{ex}")
 
     def _user_upd(self):
-        print(self._tb_user.get_selected_id)
+        self._logger.info('User updating is running')
+        user_id = self._tb_user.get_selected_id
+        user_name_to_edit = self._tb_user.get_selected_value(1)
+        if not user_id:
+            messagebox.showerror("Application error",
+                                 "Пользователь для обновления не выбран")
+            return
+        input_f = InputForm(self._log_config, self,
+                            "Ведите имя пользователя для обнвления",
+                            btn_entry_txt='Обновить', btn_exit_txt='Выйти',
+                            default_value=user_name_to_edit)
+        user_name = input_f.get_result()
+        if user_name:
+            try:
+                self._driver.user_upd(user_id, user_name)
+                self._refresh_tb_user()
+                # TODO: add refreshing self._cbx_users
+            except Exception as ex:
+                self._logger.exception(ex)
+                messagebox.showerror("Data base error",
+                                     "Ошибка обновления пользователя в БД: "
+                                     f"{ex}")
 
     def _user_del(self):
-        pass
+        self._logger.info('User deleting is running')
+        user_id = self._tb_user.get_selected_id
+        user_name_to_delete = self._tb_user.get_selected_value(1)
+        if not user_id:
+            messagebox.showerror("Application error",
+                                 "Пользователь для обновления не выбран")
+            return
+        if user_id == self._user_id:
+            messagebox.showerror("Application error",
+                                 "Удаление текущего пользоваетеля невозможно")
+            return
+        if messagebox.askokcancel("Удаление пользователя",
+                                  f"Пользователь {user_name_to_delete} "
+                                  "будет безвозвратно удален. Продолжить?"):
+            try:
+                self._driver.user_dlt(user_id)
+                self._refresh_tb_user()
+                # TODO: add refreshing self._cbx_users
+            except Exception as ex:
+                self._logger.exception(ex)
+                messagebox.showerror("Data base error",
+                                     "Ошибка обновления пользователя в БД: "
+                                     f"{ex}")
 
     def _close(self):
         self.destroy()

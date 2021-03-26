@@ -23,7 +23,8 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
     def init_db(self):
         if not os.path.exists(self._db_file_path):
             if os.path.exists(self._db_script_path):
-                with open(self._db_script_path, 'r', encoding='utf-8') as script:
+                with open(self._db_script_path, 'r',
+                          encoding='utf-8') as script:
                     script_text = script.read()
                 try:
                     if self.get_connection():
@@ -45,7 +46,7 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
                 return False
         else:
             return False
-        
+
     def close_cursor(self):
         """Метод для закрытия курсора, если он существует"""
         if self._cursor:
@@ -57,25 +58,27 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         self.close_cursor()
         if self._conn:
             self._conn.close()
+
     def user_ins(self, user_name):
         """Добавление записи в таблицу user"""
         self._cursor.execute("insert into user(user_name) VALUES(?)",
                              (user_name,))
-                             
+
     def user_upd(self, user_id, user_name):
         """Обновление записи в таблице user"""
         self._cursor.execute("update user set user_name = ? where user_id = ?",
                              (user_name, user_id))
-                             
+
     def user_dlt(self, user_id):
         """Удаление записи из таблицы user"""
         self._cursor.execute("delete from user where user_id = ?",
-                             (user_id, ))
+                             (user_id,))
 
     def user_rd(self, user_id):
         """Выбрать запись из таблицы user"""
-        self._cursor.execute("select user_id, user_name from user where user_id = ?",
-                             (user_id, ))
+        self._cursor.execute(
+            "select user_id, user_name from user where user_id = ?",
+            (user_id,))
         return self._cursor.fetchone()
 
     def user_rda(self):
