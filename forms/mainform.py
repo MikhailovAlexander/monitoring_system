@@ -5,7 +5,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import math
 
-from forms.pagination import Pagination, pagination_style3
+from forms.pagination import Pagination
 
 
 class InputForm(tk.Toplevel):
@@ -211,6 +211,16 @@ class MainForm(tk.Tk):
         nb.add(f2, text='page2')
         nb.add(f3, text='page3')
 
+    def _get_page_cnt(self, driver_method, row_limit):
+        row_cnt = 0
+        try:
+            row_cnt = driver_method()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения пользователей из БД: {ex}")
+        return math.ceil(row_cnt / row_limit)
+
     def _get_user_tab(self):
         self._logger.info('Creating user tab')
         fr_user_tab = tk.Frame(self)
@@ -233,30 +243,18 @@ class MainForm(tk.Tk):
         btn_del_user = tk.Button(fr_user_btns, text="Удалить",
                                  command=self._user_del)
         btn_del_user.pack(side="top", fill="x", pady=2)
-        fr_user_pg = tk.Frame(fr_controls)
-        fr_user_pg.pack(side="top", fill="both", expand=True)
-        lbl_user_pg = tk.Label(fr_user_pg, text="Пэйджинг")
-        lbl_user_pg.pack(fill="x", expand=True)
         page_cnt = self._get_page_cnt(self._driver.user_cnt,
                                       self._config["tb_user_row_limit"])
-        self._pgn_user = Pagination(fr_user_pg, 3, page_cnt,
+        self._pgn_user = Pagination(fr_controls, 3, page_cnt, prev_button="<<",
+                                    next_button=">>",
                                     command=self._load_user_page,
-                                    pagination_style=pagination_style3)
-        self._pgn_user.pack(fill="x", expand=True)
+                                    pagination_style=self._config[
+                                        "pagination_style"])
+        self._pgn_user.pack(side="bottom", fill="both", expand=True)
         self._tb_user = Table(fr_user_tab, headings=('id', 'Имя'))
         self._tb_user.pack(side="right", fill="both", expand=True)
         self._load_user_page(1)
         return fr_user_tab
-
-    def _get_page_cnt(self, driver_method, row_limit):
-        row_cnt = 0
-        try:
-            row_cnt = driver_method()
-        except Exception as ex:
-            self._logger.exception(ex)
-            messagebox.showerror("Data base error",
-                                 f"Ошибка чтения пользователей из БД: {ex}")
-        return math.ceil(row_cnt / row_limit)
 
     def _load_user_page(self, page_num):
         offset = (page_num - 1) * self._config["tb_user_row_limit"]

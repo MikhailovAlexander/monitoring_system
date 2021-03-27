@@ -4,9 +4,35 @@
       "db_driver_class":"SqliteDbDriver",
       "db_path":"./db/test_db.db",
       "init_script_path":"./db/init_db.sql",
-      "isolation_level": null
+      "isolation_level":null
    },
    "main_form_conf":{
-      "tb_user_row_limit":2
+      "tb_user_row_limit":2,
+      "pagination_style":{
+         "button_spacing":1,
+         "button_padx":6,
+         "button_pady":6,
+         "normal_button":{
+            "font":[
+               "TkDefaultFont",
+               8
+            ],
+            "foreground":"#717171",
+            "activeforeground":"#717171",
+            "background":"#e9e9e9",
+            "activebackground":"#fefefe"
+         },
+         "selected_button":{
+            "font":[
+               "TkDefaultFont",
+               8,
+               "bold"
+            ],
+            "foreground":"#f0f0f0",
+            "activeforeground":"#f0f0f0",
+            "background":"#616161",
+            "activebackground":"#616161"
+         }
+      }
    }
 }

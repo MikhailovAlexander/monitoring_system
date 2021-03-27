@@ -1,3 +1,6 @@
+# https://github.com/ActiveState/code/blob/f9cd012db5068722016b3489398dd3017d53a7b3/recipes/Python/580720_Pagination_widget_in_Tkinter/recipe-580720.py
+# Copyright (c) 2017 ActiveState Software Inc.
+# MIT License
 # Author: Miguel Martinez Lopez
 # Version: 0.8
 
