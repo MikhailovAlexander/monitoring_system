@@ -3,6 +3,7 @@ import logging.config
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+import math
 
 from forms.pagination import Pagination, pagination_style3
 
@@ -163,7 +164,8 @@ class Table(tk.Frame):
 class MainForm(tk.Tk):
     """Main widget for the program"""
 
-    def __init__(self, driver, log_config):
+    def __init__(self, driver, log_config, main_form_config):
+        self._config = main_form_config
         self._log_config = log_config
         logging.config.dictConfig(log_config)
         self._logger = logging.getLogger(__name__)
@@ -180,7 +182,6 @@ class MainForm(tk.Tk):
             return
         self.after(0, self.attributes, "-alpha", 1.0)  # back to normal
         self.attributes("-topmost", True)
-        self._limit_tb_user = 2
         self._create_form()
 
     def _run_entry_form(self):
@@ -236,15 +237,8 @@ class MainForm(tk.Tk):
         fr_user_pg.pack(side="top", fill="both", expand=True)
         lbl_user_pg = tk.Label(fr_user_pg, text="Пэйджинг")
         lbl_user_pg.pack(fill="x", expand=True)
-        row_cnt = 0
-        try:
-            row_cnt = self._driver.user_cnt()
-        except Exception as ex:
-            self._logger.exception(ex)
-            messagebox.showerror("Data base error",
-                                 f"Ошибка чтения пользователей из БД: {ex}")
-        page_cnt = row_cnt // self._limit_tb_user + \
-                   (0 if row_cnt / self._limit_tb_user == 0 else 1)
+        page_cnt = self._get_page_cnt(self._driver.user_cnt,
+                                      self._config["tb_user_row_limit"])
         self._pgn_user = Pagination(fr_user_pg, 3, page_cnt,
                                     command=self._load_user_page,
                                     pagination_style=pagination_style3)
@@ -254,10 +248,23 @@ class MainForm(tk.Tk):
         self._load_user_page(1)
         return fr_user_tab
 
-    def _load_user_page(self, page_num):
-        offset = (page_num - 1) * self._limit_tb_user
+    def _get_page_cnt(self, driver_method, row_limit):
+        row_cnt = 0
         try:
-            users_rec = self._driver.user_rd_pg(self._limit_tb_user, offset)
+            row_cnt = driver_method()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения пользователей из БД: {ex}")
+        return math.ceil(row_cnt / row_limit)
+
+    def _load_user_page(self, page_num):
+        offset = (page_num - 1) * self._config["tb_user_row_limit"]
+        users_rec = None
+        try:
+            users_rec = self._driver.user_rd_pg(self._config[
+                                                    "tb_user_row_limit"],
+                                                offset)
         except Exception as ex:
             self._logger.exception(ex)
             messagebox.showerror("Data base error",
@@ -301,16 +308,14 @@ class MainForm(tk.Tk):
             return {}
 
     def _refresh_tb_user(self):
-        self._tb_user.clear()
-        try:
-            users_rows = self._driver.user_rda()
-        except Exception as ex:
-            self._logger.exception(ex)
-            messagebox.showerror("Data base error",
-                                 "Ошибка чтения пользователей из БД: "
-                                 f"{ex}")
-        if users_rows:
-            self._tb_user.insert(users_rows)
+        cur_page = self._pgn_user.current_page
+        cur_page_cnt = self._pgn_user.total_pages
+        page_cnt = self._get_page_cnt(self._driver.user_cnt,
+                                      self._config["tb_user_row_limit"])
+        if cur_page_cnt != page_cnt:
+            cur_page = min(cur_page, page_cnt)
+            self._pgn_user.update(page_cnt, cur_page)
+        self._load_user_page(cur_page)
 
     def _refresh_cbx_users(self):
         self._user_dict = self._read_users()

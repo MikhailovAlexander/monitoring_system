@@ -43,7 +43,7 @@ if not driver.is_db_exist():
     logger.info('DB was created')
 driver.get_connection()
 logger.info('DB connection was opened')
-root = MainForm(driver, log_config)
+root = MainForm(driver, log_config, app_config["main_form_conf"])
 logger.info('MainForm was started')
 root.mainloop()
 logger.info('MainForm was closed')
