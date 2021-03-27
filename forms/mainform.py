@@ -1,8 +1,7 @@
 import logging
 import logging.config
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 import math
 
 from forms.pagination import Pagination
@@ -182,6 +181,10 @@ class MainForm(tk.Tk):
             return
         self.after(0, self.attributes, "-alpha", 1.0)  # back to normal
         self.attributes("-topmost", True)
+        self._sv_user_name = tk.StringVar()
+        self._sv_user_name.trace("w", self._on_upd_sv_user_name)
+        self._tb_user = None
+        self._pgn_user = None
         self._create_form()
 
     def _run_entry_form(self):
@@ -211,6 +214,20 @@ class MainForm(tk.Tk):
         nb.add(f2, text='page2')
         nb.add(f3, text='page3')
 
+    def _add_menu_bar(self):
+        self._logger.info('Adding menu bar')
+        menu = tk.Menu(self)
+        new_item = tk.Menu(menu)
+        new_item.add_command(label='Новый')
+        new_item.add_separator()
+        new_item.add_command(label='Выход', command=self._close)
+        menu.add_cascade(label='Файл', menu=new_item)
+        item = tk.Menu(menu)
+        menu.add_cascade(label='Options', menu=item)
+        item.add_command(label='Option 1')
+        item.add_command(label='Option 2')
+        self.config(menu=menu)
+
     def _get_page_cnt(self, driver_method, row_limit):
         row_cnt = 0
         try:
@@ -228,21 +245,26 @@ class MainForm(tk.Tk):
         fr_controls.pack(side="left", fill="y", padx=10)
         fr_user_filters = tk.Frame(fr_controls)
         fr_user_filters.pack(side="top", fill="both", expand=True)
-        lbl_user_filters = tk.Label(fr_user_filters, text="Фильтры")
+        lbl_user_filters = tk.Label(fr_user_filters, text="Поиск по имени")
         lbl_user_filters.pack(fill="x", expand=True)
+        en_user_name = tk.Entry(fr_user_filters,
+                                textvariable=self._sv_user_name)
+        en_user_name.pack(fill="x", expand=True)
+
+
+
+
         fr_user_btns = tk.Frame(fr_controls)
         fr_user_btns.pack(side="top", fill="both", expand=True)
-        lbl_user_btns = tk.Label(fr_user_btns, text="Кнопки")
-        lbl_user_btns.pack(fill="x", expand=True)
-        btn_add_user = tk.Button(fr_user_btns, text="Добавить",
-                                 command=self._user_add)
-        btn_add_user.pack(side="top", fill="x", pady=2)
-        btn_upd_user = tk.Button(fr_user_btns, text="Редактировать",
-                                 command=self._user_upd)
-        btn_upd_user.pack(side="top", fill="x", pady=2)
         btn_del_user = tk.Button(fr_user_btns, text="Удалить",
                                  command=self._user_del)
-        btn_del_user.pack(side="top", fill="x", pady=2)
+        btn_del_user.pack(side="bottom", fill="x", pady=2)
+        btn_upd_user = tk.Button(fr_user_btns, text="Редактировать",
+                                 command=self._user_upd)
+        btn_upd_user.pack(side="bottom", fill="x", pady=2)
+        btn_add_user = tk.Button(fr_user_btns, text="Добавить",
+                                 command=self._user_add)
+        btn_add_user.pack(side="bottom", fill="x", pady=2)
         page_cnt = self._get_page_cnt(self._driver.user_cnt,
                                       self._config["tb_user_row_limit"])
         self._pgn_user = Pagination(fr_controls, 3, page_cnt, prev_button="<<",
@@ -257,10 +279,15 @@ class MainForm(tk.Tk):
         return fr_user_tab
 
     def _load_user_page(self, page_num):
+        user_name_pattern = None
+        value = self._sv_user_name.get()
+        if value and value.strip():
+            user_name_pattern = value
         offset = (page_num - 1) * self._config["tb_user_row_limit"]
         users_rec = None
         try:
-            users_rec = self._driver.user_rd_pg(self._config[
+            users_rec = self._driver.user_rd_pg(user_name_pattern,
+                                                self._config[
                                                     "tb_user_row_limit"],
                                                 offset)
         except Exception as ex:
@@ -281,20 +308,6 @@ class MainForm(tk.Tk):
                            f"was not found in dictionary")
         raise RuntimeError("Ошибка определения текущего пользователя")
 
-    def _add_menu_bar(self):
-        self._logger.info('Adding menu bar')
-        menu = tk.Menu(self)
-        new_item = tk.Menu(menu)
-        new_item.add_command(label='Новый')
-        new_item.add_separator()
-        new_item.add_command(label='Выход', command=self._close)
-        menu.add_cascade(label='Файл', menu=new_item)
-        item = tk.Menu(menu)
-        menu.add_cascade(label='Options', menu=item)
-        item.add_command(label='Option 1')
-        item.add_command(label='Option 2')
-        self.config(menu=menu)
-
     def _read_users(self):
         try:
             users_rec = self._driver.user_rda()
@@ -304,6 +317,11 @@ class MainForm(tk.Tk):
             messagebox.showerror("Data base error",
                                  f"Ошибка чтения пользователей из БД: {ex}")
             return {}
+
+    def _on_upd_sv_user_name(self, *args):
+        value = self._sv_user_name.get()
+        if value and value.strip():
+            self._refresh_tb_user()
 
     def _refresh_tb_user(self):
         cur_page = self._pgn_user.current_page

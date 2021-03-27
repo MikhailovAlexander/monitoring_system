@@ -90,17 +90,20 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
         self._cursor.execute("select user_id, user_name from user")
         return self._cursor.fetchall()
 
-    def user_rd_pg(self, limit, offset):
+    def user_rd_pg(self, pattern, limit, offset):
         """Reads a part of records from user table for the pagination
 
+        :param pattern - user name part for like search
         :param limit - row count constraint
         :param offset - row count for shifting the results
         :return set of records from user table
 
         """
         self._cursor.execute(
-            "select user_id, user_name from user limit ? offset ?",
-            (limit, offset))
+            "select user_id, user_name from user "
+            "where ?1 is null or user_name like '%' || ?1 || '%' "
+            "limit ?2 offset ?3",
+            (pattern, limit, offset))
         return self._cursor.fetchall()
 
     def user_cnt(self):

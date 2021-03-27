@@ -49,9 +49,10 @@ class BaseDbDriver(metaclass=ABCMeta):
         """Выбрать все записи из таблицы user"""
         pass
 
-    def user_rd_pg(self, limit, offset):
+    def user_rd_pg(self, pattern, limit, offset):
         """Reads a part of records from user table for the pagination
 
+        :param pattern - user name part for like search
         :param limit - row count constraint
         :param offset - row count for shifting the results
         :return set of records from user table
