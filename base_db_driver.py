@@ -65,3 +65,62 @@ class BaseDbDriver(metaclass=ABCMeta):
         :return count of records from user table
         """
         pass
+
+    def script_rda(self):
+        """
+        :return all records from user table
+        """
+        pass
+
+    def script_rd_pg(self, limit, offset, user_id):
+        """Reads a part of records from script table for the pagination
+
+        :param limit - row count constraint
+        :param offset - row count for shifting the results
+        :param user_id: identifier from table user for checking availability
+        :return set of records from user table
+
+        """
+        pass
+
+    def script_ins(self, script_name, script_description, script_author,
+                   script_beg_date, script_hash, object_type_id):
+        """Inserts new script in script table"""
+        pass
+
+    def script_rd(self, script_id):
+        """Reads a records from script table
+
+        :param script_id - script table record identifier
+        :return record from script table
+
+        """
+        pass
+
+    def script_upd(self, script_id, script_name, script_description,
+                   script_author, script_hash, object_type_id):
+        """Updates a records from script table"""
+        pass
+
+    def script_del(self, script_id, script_end_date):
+        """Set end date value for target record in script table
+
+        :param script_id - script table record identifier
+        :param script_end_date - script end date value to set
+        :return void
+        """
+        pass
+
+    def script_all_cnt(self):
+        """
+        :return count of records from script table
+        """
+        pass
+
+    def script_cnt(self, user_id):
+        """
+
+        :param user_id: identifier from table user for checking availability
+        :return count of actual records from script table
+        """
+        pass

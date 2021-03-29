@@ -8,6 +8,11 @@
    },
    "main_form_conf":{
       "tb_user_row_limit":2,
+      "tb_script_row_limit":2,
+      "script_plugin_conf": {
+         "folder": ".\\scripts",
+         "prefix": "script"
+      },
       "pagination_style":{
          "button_spacing":1,
          "button_padx":6,
