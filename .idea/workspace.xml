@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev user table paging was updated">
-      <change afterPath="$PROJECT_DIR$/core/basescript.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/scriptplugin.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/scripttest.py" afterDir="false" />
+    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev script module designed was started">
+      <change afterPath="$PROJECT_DIR$/forms/widgets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/monitoring_system.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/monitoring_system.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/base_db_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/base_db_driver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/app_conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/core/app_conf.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/logger_conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/core/logger_conf.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/sqlite_db_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/sqlite_db_driver.py" afterDir="false" />
     </list>
@@ -47,6 +44,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="run.code.analysis.last.selected.profile" value="aDefault" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -117,6 +115,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="monitoring_system" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="test_driver" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="monitoring_system" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -143,7 +162,6 @@
         <item itemvalue="Python.main" />
         <item itemvalue="Python.scripttest" />
         <item itemvalue="Python.pagination" />
-        <item itemvalue="Python.test_driver" />
       </list>
     </recent_temporary>
   </component>
@@ -184,7 +202,14 @@
       <option name="project" value="LOCAL" />
       <updated>1616867910008</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="#dev script module designed was started">
+      <created>1617041205301</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1617041205301</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -231,6 +256,7 @@
     <MESSAGE value="#dev user table paging was added" />
     <MESSAGE value="#dev user table refreshing was updated" />
     <MESSAGE value="#dev user table paging was updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="#dev user table paging was updated" />
+    <MESSAGE value="#dev script module designed was started" />
+    <option name="LAST_COMMIT_MESSAGE" value="#dev script module designed was started" />
   </component>
 </project>

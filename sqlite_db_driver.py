@@ -197,9 +197,8 @@ class SqliteDbDriver(base_db_driver.BaseDbDriver):
                              "	script_name = ?2,"
                              "	script_description = ?3,"
                              "	script_author = ?4,"
-                             "	script_beg_date = ?5,"
-                             "	script_hash = ?6,"
-                             "	object_type_name = ?7 "
+                             "	script_hash = ?5,"
+                             "	object_type_id = ?6 "
                              "where script_id = ?1",
                              (script_id, script_name, script_description,
                               script_author, script_hash, object_type_id))
