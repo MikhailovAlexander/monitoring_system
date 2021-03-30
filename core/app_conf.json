@@ -1,6 +1,6 @@
 {
    "db_conf":{
-      "db_driver_module":"sqlite_db_driver",
+      "db_driver_module":"db.sqlitedbdriver",
       "db_driver_class":"SqliteDbDriver",
       "db_path":"./db/test_db.db",
       "init_script_path":"./db/init_db.sql",
@@ -10,7 +10,7 @@
       "tb_user_row_limit":2,
       "tb_script_row_limit":2,
       "script_plugin_conf": {
-         "folder": ".\\scripts",
+         "folder": "scripts",
          "prefix": "script"
       },
       "pagination_style":{

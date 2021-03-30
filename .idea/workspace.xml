@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev script module designed was started">
-      <change afterPath="$PROJECT_DIR$/forms/widgets.py" afterDir="false" />
+    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev script module designed was updated">
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/monitoring_system.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/monitoring_system.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sqlite_db_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/sqlite_db_driver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/base_db_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/app_conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/core/app_conf.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sqlite_db_driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,6 +49,7 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\vestr\source\repos\monitoring_system\db" />
       <recent name="C:\Users\vestr\source\repos\monitoring_system\core" />
     </key>
   </component>
@@ -209,7 +211,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617041205301</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="#dev script module designed was updated">
+      <created>1617097194537</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1617097194537</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -257,6 +266,7 @@
     <MESSAGE value="#dev user table refreshing was updated" />
     <MESSAGE value="#dev user table paging was updated" />
     <MESSAGE value="#dev script module designed was started" />
-    <option name="LAST_COMMIT_MESSAGE" value="#dev script module designed was started" />
+    <MESSAGE value="#dev script module designed was updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="#dev script module designed was updated" />
   </component>
 </project>

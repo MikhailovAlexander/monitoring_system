@@ -1,9 +1,9 @@
-import base_db_driver
+from db import basedbdriver
 import sqlite3
 import os
 
 
-class SqliteDbDriver(base_db_driver.BaseDbDriver):
+class SqliteDbDriver(basedbdriver.BaseDbDriver):
     def __init__(self, db_config):
         self._db_file_path = db_config["db_path"]
         self._db_script_path = db_config["init_script_path"]

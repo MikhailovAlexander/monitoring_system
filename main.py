@@ -3,7 +3,7 @@ import logging.config
 import json
 
 from forms.mainform import MainForm
-from base_db_driver import BaseDbDriver
+from db.basedbdriver import BaseDbDriver
 from core.dynamicimport import DynamicImport
 
 LOG_CONF_FILE_PATH = './core/logger_conf.json'
