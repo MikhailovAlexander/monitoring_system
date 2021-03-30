@@ -1,10 +1,15 @@
-from db import basedbdriver
+import logging
+import logging.config
 import sqlite3
 import os
 
+from db.basedbdriver import BaseDbDriver
 
-class SqliteDbDriver(basedbdriver.BaseDbDriver):
-    def __init__(self, db_config):
+
+class SqliteDbDriver(BaseDbDriver):
+    def __init__(self, log_config, db_config):
+        logging.config.dictConfig(log_config)
+        self._logger = logging.getLogger(__name__)
         self._db_file_path = db_config["db_path"]
         self._db_script_path = db_config["init_script_path"]
         self._iso_level = db_config["isolation_level"]
@@ -149,7 +154,7 @@ class SqliteDbDriver(basedbdriver.BaseDbDriver):
             "			select 1 from user_script_link as usl "
             "			where usl.user_id = ?3 "
             "				and usl.script_id = s.script_id "
-            "				and usl.user_script_link_end_date is not null))"
+            "				and usl.user_script_link_end_date is null))"
             "limit ?1 offset ?2",
             (limit, offset, user_id))
         return self._cursor.fetchall()
@@ -241,3 +246,49 @@ class SqliteDbDriver(basedbdriver.BaseDbDriver):
             (user_id,))
         return self._cursor.fetchone()[0]
 
+    def user_script_link_srch(self, user_id, script_id):
+        """
+
+        :param user_id: user table record identifier for searching link
+        :param script_id - script table record identifier for searching link
+        :return first actual link record for script and user
+        """
+        pass
+        self._cursor.execute(
+            "select "
+            "	user_script_link_id,"
+            "	user_script_link_beg_date "
+            "from user_script_link "
+            "where user_script_link_end_date is null "
+            "	and user_id = ?1 "
+            "	and script_id = ?2 "
+            "limit 1",
+            (user_id, script_id))
+        return self._cursor.fetchone()
+
+    def user_script_link_ins(self, user_id, script_id,
+                             user_script_link_beg_date):
+        """Inserts new link in user_script_link table"""
+        self._cursor.execute(
+            "insert into user_script_link("
+            "	user_id,"
+            "	script_id,"
+            "	user_script_link_beg_date) "
+            "values(?,?,?)",
+            (user_id, script_id, user_script_link_beg_date))
+
+    def user_script_link_del(self, user_script_link_id,
+                             user_script_link_end_date):
+        """Set end date value for target record in user_script_link table
+
+        :param user_script_link_id - user_script_link table record identifier
+        :param user_script_link_end_date - end date value to set
+        :return void
+        """
+        self._logger.debug(f"params: {user_script_link_id}; "
+                           f"{user_script_link_end_date}")
+        self._cursor.execute(
+            "update user_script_link "
+            "set user_script_link_end_date = ?2 "
+            "where user_script_link_id = ?1",
+            (user_script_link_id, user_script_link_end_date))

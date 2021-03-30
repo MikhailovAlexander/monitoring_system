@@ -124,3 +124,27 @@ class BaseDbDriver(metaclass=ABCMeta):
         :return count of actual records from script table
         """
         pass
+
+    def user_script_link_srch(self, user_id, script_id):
+        """
+
+        :param user_id: user table record identifier for searching link
+        :param script_id - script table record identifier for searching link
+        :return first actual link record for script and user
+        """
+        pass
+
+    def user_script_link_ins(self, user_id, script_id,
+                             user_script_link_beg_date):
+        """Inserts new link in user_script_link table"""
+        pass
+
+    def user_script_link_del(self, user_script_link_id,
+                             user_script_link_end_date):
+        """Set end date value for target record in user_script_link table
+
+        :param user_script_link_id - user_script_link table record identifier
+        :param user_script_link_end_date - end date value to set
+        :return void
+        """
+        pass

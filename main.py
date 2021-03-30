@@ -36,7 +36,8 @@ db_conf = app_config["db_conf"]
 db_mod_name = db_conf["db_driver_module"]
 db_cls_name = db_conf["db_driver_class"]
 driver = DynamicImport.get_object(logger, db_mod_name, db_cls_name,
-                                  BaseDbDriver, db_config=db_conf)
+                                  BaseDbDriver, log_config=log_config,
+                                  db_config=db_conf)
 if not driver.is_db_exist():
     logger.info('DB is not exist')
     driver.init_db()

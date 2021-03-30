@@ -3,6 +3,7 @@ import logging.config
 import tkinter as tk
 from tkinter import ttk, messagebox
 import math
+import datetime
 
 from forms.widgets import TableForm, EntryForm, InputForm, Table
 from forms.pagination import Pagination
@@ -42,6 +43,9 @@ class MainForm(tk.Tk):
         self._tb_script = None
         self._pgn_script = None
         self._create_form()
+
+    def _close(self):
+        self.destroy()
 
     def _run_entry_form(self):
         self._logger.info('Running EntryForm')
@@ -295,6 +299,16 @@ class MainForm(tk.Tk):
         btn_srch_script = tk.Button(fr_script_btns, text="Искать новые",
                                     command=self._script_srch)
         btn_srch_script.pack(side="bottom", fill="x", pady=2)
+        btn_rm_script_to_user = tk.Button(fr_script_btns,
+                                          text="Снять видимость для"
+                                               "\nтекущего пользователя",
+                                          command=self._script_rm_to_user)
+        btn_rm_script_to_user.pack(side="bottom", fill="x", pady=2)
+        btn_add_script_to_user = tk.Button(fr_script_btns,
+                                           text="Добавить видимость для"
+                                                "\nтекущего пользователя",
+                                           command=self._script_add_to_user)
+        btn_add_script_to_user.pack(side="bottom", fill="x", pady=2)
         # TODO: Add buttons for scripts
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
                                       self._config["tb_script_row_limit"],
@@ -418,5 +432,55 @@ class MainForm(tk.Tk):
             messagebox.showerror("Script saving error",
                                  f"Ошибка добавления скрипта: {ex}")
 
-    def _close(self):
-        self.destroy()
+    def _script_add_to_user(self):
+        self._logger.info("User script link adding is running")
+        script_id = self._tb_script.get_selected_id
+        if not script_id:
+            messagebox.showerror("Application error",
+                                 "Скрипт для добавления не выбран")
+            return
+        try:
+            link = self._driver.user_script_link_srch(self._user_id,
+                                                         script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка проверки видимости скрипта: {ex}")
+        if link:
+            messagebox.showerror("Application error",
+                                 "Скрипт уже доступен текущему пользователю")
+            return
+        try:
+            self._driver.user_script_link_ins(self._user_id, script_id,
+                                              datetime.datetime.now())
+            self._refresh_tb_script()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка добавления видимости скрипта: {ex}")
+
+    def _script_rm_to_user(self):
+        self._logger.info("User script link removing is running")
+        script_id = self._tb_script.get_selected_id
+        if not script_id:
+            messagebox.showerror("Application error",
+                                 "Скрипт для снятия видимости не выбран")
+            return
+        try:
+            link = self._driver.user_script_link_srch(self._user_id,
+                                                         script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка проверки видимости скрипта: {ex}")
+        if not link:
+            messagebox.showerror("Application error",
+                                 "Скрипт не доступен текущему пользователю")
+            return
+        try:
+            self._driver.user_script_link_del(link[0], datetime.datetime.now())
+            self._refresh_tb_script()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка снятия видимости скрипта: {ex}")
