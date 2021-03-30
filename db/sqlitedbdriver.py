@@ -127,15 +127,20 @@ class SqliteDbDriver(BaseDbDriver):
                              "object_type_id from script")
         return self._cursor.fetchall()
 
-    def script_rd_pg(self, limit, offset, user_id):
+    def script_rd_pg(self, limit, offset, user_id, name_pattern, date_from,
+                     date_to):
         """Reads a part of records from script table for the pagination
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
         :param user_id: identifier from table user for checking availability
+        :param name_pattern: script name part for like search
+        :param date_from: begin date constraint fot user_beg_date
+        :param date_to: end date constraint fot user_beg_date
         :return set of records from script table
 
         """
+        self._logger.debug(f"dates: {date_from}; {date_to}")
         self._cursor.execute(
             "select "
             "	s.script_hash,"
@@ -155,8 +160,11 @@ class SqliteDbDriver(BaseDbDriver):
             "			where usl.user_id = ?3 "
             "				and usl.script_id = s.script_id "
             "				and usl.user_script_link_end_date is null))"
+            "   and (?4 is null or script_name like '%' || ?4 || '%') "
+            "   and (?5 is null or date(script_beg_date) >= ?5) "
+            "   and (?6 is null or date(script_beg_date) <= ?6) "
             "limit ?1 offset ?2",
-            (limit, offset, user_id))
+            (limit, offset, user_id, name_pattern, date_from, date_to))
         return self._cursor.fetchall()
 
     def script_ins(self, script_name, script_description, script_author,

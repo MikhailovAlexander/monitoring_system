@@ -68,15 +68,20 @@ class ScriptPlugin(object):
                 self._logger.exception(ex)
         return new_scripts
 
-    def get_actual_scripts(self, limit, offset, user_id=None):
+    def get_actual_scripts(self, limit, offset, user_id=None, name_pattern=None,
+                           date_from=None, date_to=None):
         """
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
         :param user_id: identifier from table user for checking availability
+        :param name_pattern: script name part for like search
+        :param date_from: begin date constraint fot user_beg_date
+        :param date_to: end date constraint fot user_beg_date
         :return: List of actual scripts which are available to the user
         """
-        scripts = self._driver.script_rd_pg(limit, offset, user_id)
+        scripts = self._driver.script_rd_pg(limit, offset, user_id,
+                                            name_pattern, date_from, date_to)
         scripts = [[*row, None] for row in scripts]  # Status column is added
         for script in scripts:
             status = "Проверен"

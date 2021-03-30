@@ -2,6 +2,64 @@ import logging
 import logging.config
 import tkinter as tk
 from tkinter import ttk, messagebox
+import datetime
+
+
+class DateEntry(tk.Frame):
+    """widget for user date input"""
+
+    def __init__(self, root, log_config, lbl_text, default_value=None,
+                 date_pattern="%d.%m.%Y", command=None):
+        super().__init__(root)
+        logging.config.dictConfig(log_config)
+        self._logger = logging.getLogger(__name__)
+        self._date_pattern = date_pattern
+        self._command = command
+        self._sv_date = tk.StringVar(value=default_value)
+        self._sv_date.trace("w", self._on_upd_sv_date)
+        lbl_description = tk.Label(self, text=lbl_text)
+        lbl_description.grid(row=0, column=0, sticky="we")
+        self._entry = tk.Entry(self, textvariable=self._sv_date, width=20)
+        self._entry.grid(row=0, column=1, padx=10, pady=10)
+
+    def _on_upd_sv_date(self, *args):
+        try:
+            datetime.datetime.strptime(self._entry.get(), self._date_pattern)
+            self._entry.configure(bg="white")
+            if self._command:
+                self._command()
+        except Exception:
+            self._entry.configure(bg="red")
+
+    def clear(self):
+        """Clear widget"""
+        self._sv_date.set(value="")
+        self._entry.configure(bg="white")
+
+    def set(self, value):
+        """Set value to the widget"""
+        self.clear()
+        self._entry.insert(0, value)
+        self._entry.configure(bg="white")
+
+    def get(self):
+        """Returns value as date from the widget or None if value is not date"""
+        value = None
+        try:
+            value = datetime.datetime.strptime(self._entry.get(),
+                                               self._date_pattern)
+        except Exception as ex:
+            self._logger.warning(f"Date convert error: {self._entry.get()}")
+        return value
+
+    def enable(self):
+        """Set normal state for the widget"""
+        self._entry.configure(state="normal")
+
+    def disable(self):
+        """Set disable state for the widget"""
+        self._entry.configure(state="disable")
+        self.clear()
 
 
 class TableForm(tk.Toplevel):

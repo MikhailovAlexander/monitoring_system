@@ -72,13 +72,17 @@ class BaseDbDriver(metaclass=ABCMeta):
         """
         pass
 
-    def script_rd_pg(self, limit, offset, user_id):
+    def script_rd_pg(self, limit, offset, user_id, name_pattern, date_from,
+                     date_to):
         """Reads a part of records from script table for the pagination
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
         :param user_id: identifier from table user for checking availability
-        :return set of records from user table
+        :param name_pattern: script name part for like search
+        :param date_from: begin date constraint fot user_beg_date
+        :param date_to: end date constraint fot user_beg_date
+        :return set of records from script table
 
         """
         pass

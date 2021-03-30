@@ -5,7 +5,7 @@ from tkinter import ttk, messagebox
 import math
 import datetime
 
-from forms.widgets import TableForm, EntryForm, InputForm, Table
+from forms.widgets import DateEntry, TableForm, EntryForm, InputForm, Table
 from forms.pagination import Pagination
 from core.scriptplugin import ScriptPlugin
 
@@ -40,6 +40,12 @@ class MainForm(tk.Tk):
         self._pgn_user = None
         self._iv_all_user_scripts = tk.IntVar(value=1)
         self._iv_all_user_scripts.trace("w", self._refresh_tb_script)
+        self._sv_script_name = tk.StringVar()
+        self._sv_script_name.trace("w", self._on_upd_sv_script_name)
+        self._iv_period_scripts = tk.IntVar(value=0)
+        self._iv_period_scripts.trace("w", self._on_upd_iv_period_scripts)
+        self._ed_script_date_from = None
+        self._ed_script_date_to = None
         self._tb_script = None
         self._pgn_script = None
         self._create_form()
@@ -281,13 +287,29 @@ class MainForm(tk.Tk):
                                              variable=self._iv_all_user_scripts,
                                              padx=15, pady=10)
         cb_all_user_scripts.pack(fill="x", expand=True)
-        # TODO: Add filtres for scripts
-        lbl_script_filters = tk.Label(fr_script_filters, text="Поиск по имени")
+        lbl_script_filters = tk.Label(fr_script_filters,
+                                      text="Поиск по названию")
         lbl_script_filters.pack(fill="x", expand=True)
         en_script_name = tk.Entry(fr_script_filters,
-                                textvariable=self._sv_user_name)
+                                  textvariable=self._sv_script_name)
         en_script_name.pack(fill="x", expand=True)
-
+        cb_period_scripts = tk.Checkbutton(fr_script_filters,
+                                           text="Добавленные за период",
+                                           variable=self._iv_period_scripts,
+                                           padx=15, pady=10)
+        cb_period_scripts.pack(fill="x", expand=True)
+        self._ed_script_date_from = DateEntry(fr_script_filters,
+                                              self._log_config,
+                                              "с ",
+                                              command=self._refresh_tb_script)
+        self._ed_script_date_from.pack(fill="x", expand=True)
+        self._ed_script_date_from.disable()
+        self._ed_script_date_to = DateEntry(fr_script_filters,
+                                            self._log_config,
+                                            "по ",
+                                            command=self._refresh_tb_script)
+        self._ed_script_date_to.pack(fill="x", expand=True)
+        self._ed_script_date_to.disable()
         fr_script_btns = tk.Frame(fr_script_controls)
         fr_script_btns.pack(side="top", fill="both", expand=True)
         btn_del_script = tk.Button(fr_script_btns, text="Удалить",
@@ -309,7 +331,8 @@ class MainForm(tk.Tk):
                                                 "\nтекущего пользователя",
                                            command=self._script_add_to_user)
         btn_add_script_to_user.pack(side="bottom", fill="x", pady=2)
-        # TODO: Add buttons for scripts
+        # TODO: Add script running button
+        # TODO: Add checks show button
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
                                       self._config["tb_script_row_limit"],
                                       user_id=
@@ -336,11 +359,19 @@ class MainForm(tk.Tk):
         limit = self._config["tb_script_row_limit"]
         offset = (page_num - 1) * limit
         user_id = None if self._iv_all_user_scripts.get() else self._user_id
-        self._logger.debug(f"user_id: {user_id}")
+        name_pattern = None
+        value = self._sv_script_name.get()
+        if value and value.strip():
+            name_pattern = value
+        date_from = self._ed_script_date_from.get()
+        date_to = self._ed_script_date_to.get()
         script_rec = None
         try:
             script_rec = self._scr_plug.get_actual_scripts(limit, offset,
-                                                           user_id)
+                                                           user_id,
+                                                           name_pattern,
+                                                           date_from,
+                                                           date_to)
         except Exception as ex:
             self._logger.exception(ex)
             messagebox.showerror("Data base error",
@@ -348,6 +379,20 @@ class MainForm(tk.Tk):
         self._tb_script.clear()
         if script_rec:
             self._tb_script.insert(script_rec)
+
+    def _on_upd_sv_script_name(self, *args):
+        value = self._sv_script_name.get()
+        if value and value.strip():
+            self._refresh_tb_script()
+
+    def _on_upd_iv_period_scripts(self, *args):
+        if self._iv_period_scripts.get():
+            self._ed_script_date_from.enable()
+            self._ed_script_date_to.enable()
+        else:
+            self._ed_script_date_from.disable()
+            self._ed_script_date_to.disable()
+        self._refresh_tb_script()
 
     def _refresh_tb_script(self, *args):
         self._logger.debug("Refreshing tb_script is running")
