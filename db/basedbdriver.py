@@ -29,6 +29,18 @@ class BaseDbDriver(metaclass=ABCMeta):
            если они существуют"""
         pass
 
+    def begin_transaction(self):
+        """Starts db transaction"""
+        pass
+
+    def commit(self):
+        """Commits db transaction"""
+        pass
+
+    def rollback(self):
+        """Rollbacks db transaction"""
+        pass
+
     def user_ins(self, user_name):
         """Добавление записи в таблицу user"""
         pass
@@ -93,7 +105,7 @@ class BaseDbDriver(metaclass=ABCMeta):
         pass
 
     def script_rd(self, script_id):
-        """Reads a records from script table
+        """Reads records from script table
 
         :param script_id - script table record identifier
         :return record from script table
@@ -103,7 +115,7 @@ class BaseDbDriver(metaclass=ABCMeta):
 
     def script_upd(self, script_id, script_name, script_description,
                    script_author, script_hash, object_type_id):
-        """Updates a records from script table"""
+        """Updates records from script table"""
         pass
 
     def script_del(self, script_id, script_end_date):
@@ -176,5 +188,31 @@ class BaseDbDriver(metaclass=ABCMeta):
         """Inserts new link in fact_check table
 
         :return inserted row identifier
+
         """
+        pass
+
+    def fact_check_que(self):
+        """
+
+        :return fact_check and script identifiers with queue status
+
+        """
+        pass
+
+    def fact_check_upd(self, fact_check_id, fact_check_end_date,
+                       fact_check_obj_count, fact_check_status_id):
+        """Updates record from fact_check table"""
+        pass
+
+    def fact_check_rd_status(self, fact_check_id):
+        """
+
+        :return fact_check_status_id value by record from fact_check table
+
+        """
+        pass
+
+    def object_ins(self, values):
+        """Inserts set of new records in the object table"""
         pass

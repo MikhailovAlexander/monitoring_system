@@ -68,6 +68,18 @@ class SqliteDbDriver(BaseDbDriver):
         self._cursor.execute(f"select count(*) from {table_name}")
         return int(self._cursor.fetchone()[0])
 
+    def begin_transaction(self):
+        """Starts db transaction"""
+        self._cursor.execute("begin transaction;")
+
+    def commit(self):
+        """Commits db transaction"""
+        self._cursor.execute("commit;")
+
+    def rollback(self):
+        """Rollbacks db transaction"""
+        self._cursor.execute("rollback;")
+
     def user_ins(self, user_name):
         """Добавление записи в таблицу user"""
         self._cursor.execute("insert into user(user_name) VALUES(?)",
@@ -182,7 +194,7 @@ class SqliteDbDriver(BaseDbDriver):
                               script_beg_date, script_hash, object_type_id))
 
     def script_rd(self, script_id):
-        """Reads a records from script table
+        """Reads records from script table
 
         :param script_id - script table record identifier
         :return record from script table
@@ -204,7 +216,7 @@ class SqliteDbDriver(BaseDbDriver):
 
     def script_upd(self, script_id, script_name, script_description,
                    script_author, script_hash, object_type_id):
-        """Updates a records from script table"""
+        """Updates records from script table"""
         self._cursor.execute("update script set"
                              "	script_name = ?2,"
                              "	script_description = ?3,"
@@ -324,14 +336,14 @@ class SqliteDbDriver(BaseDbDriver):
             "	u.user_name, "
             "	ot.object_type_name, "
             "	fc.fact_check_date, "
-            "	case "
-            "		when fc.fact_check_is_finished = 1 then 'да' "
-            "		else 'нет' end as is_finished, "
+            "	fcs.fact_check_status_name, "
             "	fc.fact_check_obj_count, "
             "	(select count(ob.object_id)  "
             "	from object as ob  "
             "	where ob.fact_check_id = fc.fact_check_id) as odj_cnt "
             "from fact_check as fc "
+            "	inner join fact_check_status as fcs "
+            "		on fcs.fact_check_status_id = fc.fact_check_status_id "
             "	inner join user_script_link as usl "
             "		on usl.user_script_link_id = fc.user_script_link_id "
             "	inner join user as u on u.user_id = usl.user_id "
@@ -361,3 +373,58 @@ class SqliteDbDriver(BaseDbDriver):
             "values(?,?,1)",
             (fact_check_que_date, user_script_link_id))
         return self._cursor.lastrowid
+
+    def fact_check_que(self):
+        """
+
+        :return fact_check and script identifiers with queue status
+
+        """
+        self._cursor.execute(
+            "select "
+            "	fc.fact_check_id, "
+            "	s.script_id "
+            "from fact_check as fc "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "	inner join script as s on s.script_id = usl.script_id "
+            "where fcs.fact_check_status_id = 1")
+        return self._cursor.fetchall()
+
+    def fact_check_upd(self, fact_check_id, fact_check_end_date,
+                       fact_check_obj_count, fact_check_status_id):
+        """Updates record from fact_check table"""
+        self._cursor.execute(
+            "update fact_check set"
+            "	fact_check_end_date = ?2,"
+            "	fact_check_obj_count = ?3,"
+            "	fact_check_status_id = ?4 "
+            "where fact_check_id = ?1",
+            (fact_check_id, fact_check_end_date, fact_check_obj_count,
+             fact_check_status_id))
+
+    def fact_check_rd_status(self, fact_check_id):
+        """
+
+        :return fact_check_status_id value by record from fact_check table
+
+        """
+        self._cursor.execute(
+            "select fc.fact_check_status_id "
+            "from fact_check as fc "
+            "where fact_check_id = ?",
+            (fact_check_id,))
+        return self._cursor.fetchone()
+
+    def object_ins(self, values):
+        """Inserts set of new records in the object table"""
+        self._cursor.executemany(
+            "insert into object("
+            "	object_name,"
+            "	object_identifier,"
+            "	object_comment,"
+            "	object_author,"
+            "	object_date,"
+            "	fact_check_id,"
+            "	error_level_id) "
+            "values(?,?,?,?,?,?,?)", values)
