@@ -388,7 +388,7 @@ class SqliteDbDriver(BaseDbDriver):
             "	inner join user_script_link as usl "
             "		on usl.user_script_link_id = fc.user_script_link_id "
             "	inner join script as s on s.script_id = usl.script_id "
-            "where fcs.fact_check_status_id = 1")
+            "where fc.fact_check_status_id = 1")
         return self._cursor.fetchall()
 
     def fact_check_upd(self, fact_check_id, fact_check_end_date,

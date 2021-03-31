@@ -1,19 +1,14 @@
 import logging
 import logging.config
-import tkinter as tk
+from multiprocessing import Process
 import datetime
-# from queue import Queue
-import threading
+from queue import Queue
 
 from core.scriptplugin import ScriptPlugin
 
 EXECUTE = 2
 FAIL = 3
 CANCEL = 4
-
-NOT_ACTIVE = 0
-ACTIVE = 1
-CHECK = 2
 
 
 class QueueItem(object):
@@ -88,54 +83,68 @@ class QueueItem(object):
 class ScriptQueue(object):
     """Class for script running manage"""
 
-    def __init__(self, driver, log_config, iv_current_script):
+    def __init__(self, driver, log_config, script_plugin_conf, iv_current_check):
         self._log_config = log_config
         logging.config.dictConfig(log_config)
         self._logger = logging.getLogger(__name__)
         self._logger.info("Creating ScriptQueue")
-        self._state = tk.IntVar(value=NOT_ACTIVE)
-        self._state.trace("w", self._on_upd_state)
-        self._current_script = iv_current_script
-        # self._queue = Queue()
+        self._current_check = iv_current_check
+        self._queue = Queue()
+        self._process = Process(target=self._queue_handle, daemon=True)
         self._driver = driver
-        self._scr_plug = ScriptPlugin(log_config,
-                                      self._config["script_plugin_conf"],
-                                      self._driver)
+        self._scr_plug = ScriptPlugin(log_config, script_plugin_conf, driver)
+        self._launch_queue()
 
     @property
-    def state(self):
-        """Returns active state of queue as a bool value"""
-        return bool(self._state.get())
-
-    @property
-    def current_script(self):
+    def current_check(self):
         """Returns current script identifier"""
-        return self._current_script.get()
+        return self._current_check.get()
 
-    def _on_upd_state(self):
-        state = self._state.get()
-        if state == ACTIVE or state == CHECK:
-            return
-        threading.Thread(target=self._refresh_queue, daemon=True).start()
+    def put(self, script, script_id, fact_check_id):
+        """puts new script to the queue
+        and start handler if it is not working
+        """
+        self._queue.put(QueueItem(self._driver, self._log_config, script,
+                                  script_id, fact_check_id))
+        if not self._process.is_alive():
+            self._process.start()
 
-    def _refresh_queue(self):
-        self._state.set(CHECK)
+    def stop_queue(self):
+        """Stop queue handler if it is working"""
+        if self._process.is_alive():
+            self._process.terminate()
+
+    def stop_check(self, fact_check_id):
+        """Restart queue handler if it is working and needs check is running"""
+        if self._process.is_alive() and self._current_check == fact_check_id:
+            self._process.terminate()
+            self._process.start()
+
+    def refresh(self):
+        """Clears queue, reload it from db and restart handler"""
+        self._launch_queue()
+
+    def _queue_handle(self):
+        self._logger.debug("queue_handle is running")
+        while not self._queue.empty():
+            item = self._queue.get()
+            self._current_check.set(item.fact_check_id)
+            item.run_and_save()
+        self._current_check.set(None)
+
+    def _launch_queue(self):
+        if self._process.is_alive():
+            self._process.terminate()
+        self._queue = Queue()
         items = []
         try:
             items = self._get_check_que_db()
         except Exception as ex:
-            self._state.set(NOT_ACTIVE)
             self._logger.exception(ex)
             raise RuntimeError(f"Error during checks search: {ex}")
-        if not items:
-            self._state.set(NOT_ACTIVE)
-            return
-        self._state.set(ACTIVE)
         for item in items:
-            self._current_script.set(item.script_id)
-            item.run_and_save()
-        self._current_script.set(None)
-        self._state.set(NOT_ACTIVE)
+            self._queue.put(item)
+        self._process.start()
 
     def _get_check_que_db(self):
         checks = self._driver.fact_check_que()
@@ -151,4 +160,3 @@ class ScriptQueue(object):
                                             fact_check_obj_count=None,
                                             fact_check_status_id=FAIL)
         return items
-

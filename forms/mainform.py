@@ -8,6 +8,7 @@ import datetime
 from forms.widgets import DateEntry, TableForm, EntryForm, InputForm, Table
 from forms.pagination import Pagination
 from core.scriptplugin import ScriptPlugin
+from core.scriptqueue import ScriptQueue
 
 
 class MainForm(tk.Tk):
@@ -33,7 +34,12 @@ class MainForm(tk.Tk):
         self.attributes("-topmost", True)
         self._scr_plug = ScriptPlugin(log_config,
                                       self._config["script_plugin_conf"],
-                                      self._driver)
+                                      driver)
+        self._iv_executing_check = tk.IntVar(value=None)
+        self._iv_executing_check.trace("w", self._on_upd_iv_executing_check)
+        self._scr_queue = ScriptQueue(driver, log_config,
+                                      self._config["script_plugin_conf"],
+                                      self._iv_executing_check)
         self._sv_user_name = tk.StringVar()
         self._sv_user_name.trace("w", self._on_upd_sv_user_name)
         self._tb_user = None
@@ -676,3 +682,6 @@ class MainForm(tk.Tk):
         # TODO: add load page
         # self._load_script_page(1)
         return fr_check_tab
+
+    def _on_upd_iv_executing_check(self):
+        pass

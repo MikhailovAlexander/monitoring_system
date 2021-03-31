@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev_script_queue fact_check_status table was added">
-      <change afterPath="$PROJECT_DIR$/core/scriptqueue.py" afterDir="false" />
+    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev_script_queue script queue was added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/basedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/scriptqueue.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/scriptqueue.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/sqlitedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -241,7 +241,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617177585363</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="#dev_script_queue script queue was added">
+      <created>1617196709781</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1617196709781</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -293,6 +300,7 @@
     <MESSAGE value="#dev buttons for script tab was added" />
     <MESSAGE value="#dev date filters for script tab was added" />
     <MESSAGE value="#dev_script_queue fact_check_status table was added" />
-    <option name="LAST_COMMIT_MESSAGE" value="#dev_script_queue fact_check_status table was added" />
+    <MESSAGE value="#dev_script_queue script queue was added" />
+    <option name="LAST_COMMIT_MESSAGE" value="#dev_script_queue script queue was added" />
   </component>
 </project>
