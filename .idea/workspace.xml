@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev script module designed was updated">
+    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev date filters for script tab was added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/scriptplugin.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/scriptplugin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/basedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/sqlitedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms/widgets.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/widgets.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -229,7 +227,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617111386307</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="#dev date filters for script tab was added">
+      <created>1617127453598</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1617127453598</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -279,6 +284,7 @@
     <MESSAGE value="#dev script module designed was started" />
     <MESSAGE value="#dev script module designed was updated" />
     <MESSAGE value="#dev buttons for script tab was added" />
-    <option name="LAST_COMMIT_MESSAGE" value="#dev buttons for script tab was added" />
+    <MESSAGE value="#dev date filters for script tab was added" />
+    <option name="LAST_COMMIT_MESSAGE" value="#dev date filters for script tab was added" />
   </component>
 </project>

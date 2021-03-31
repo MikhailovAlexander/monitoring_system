@@ -48,6 +48,12 @@ class MainForm(tk.Tk):
         self._ed_script_date_to = None
         self._tb_script = None
         self._pgn_script = None
+
+        self._ed_check_date_from = None
+        self._ed_check_date_to = None
+        self._tb_check = None
+        self._pgn_check = None
+
         self._create_form()
 
     def _close(self):
@@ -76,10 +82,10 @@ class MainForm(tk.Tk):
         nb.pack(side="bottom", fill="both", expand=True)
         fr_user_tab = self._get_user_tab()
         fr_script_tab = self._get_script_tab()
-        f3 = tk.Text(self)
+        fr_check_tab = self._get_check_tab()
         nb.add(fr_user_tab, text="Пользователи")
         nb.add(fr_script_tab, text="Скрипты")
-        nb.add(f3, text='page3')
+        nb.add(fr_check_tab, text="Проверки")
 
     def _add_menu_bar(self):
         self._logger.info("Adding menu bar")
@@ -331,6 +337,9 @@ class MainForm(tk.Tk):
                                                 "\nтекущего пользователя",
                                            command=self._script_add_to_user)
         btn_add_script_to_user.pack(side="bottom", fill="x", pady=2)
+        btn_run_script = tk.Button(fr_script_btns, text="Запустить скрипт",
+                                   command=self._on_clk_btn_run_script)
+        btn_run_script.pack(side="bottom", fill="x", pady=2)
         # TODO: Add script running button
         # TODO: Add checks show button
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
@@ -393,6 +402,14 @@ class MainForm(tk.Tk):
             self._ed_script_date_from.disable()
             self._ed_script_date_to.disable()
         self._refresh_tb_script()
+
+    def _on_clk_btn_run_script(self, *args):
+        script_id = self._tb_script.get_selected_id
+        if not script_id:
+            messagebox.showerror("Application error",
+                                 "Скрипт для запуска не выбран")
+            return
+        self._script_run(script_id)
 
     def _refresh_tb_script(self, *args):
         self._logger.debug("Refreshing tb_script is running")
@@ -529,3 +546,124 @@ class MainForm(tk.Tk):
             self._logger.exception(ex)
             messagebox.showerror("Script saving error",
                                  f"Ошибка снятия видимости скрипта: {ex}")
+
+    def _script_run(self, script_id):
+        self._logger.info('Running script')
+        try:
+            link = self._driver.user_script_link_srch(self._user_id, script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка проверки видимости скрипта: {ex}")
+        if not link:
+            messagebox.showerror("Application error",
+                                 "Скрипт не доступен текущему пользователю")
+            return
+        link_id = link[0]
+        script = None
+        try:
+            script = self._scr_plug.get_script(script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка чтения скрипта: {ex}")
+        if script:
+            pass
+            # TODO: add ScriptQueue
+
+    def _get_check_tab(self):
+        self._logger.info('Creating check tab')
+        fr_check_tab = tk.Frame(self)
+        fr_check_controls = tk.Frame(fr_check_tab)
+        fr_check_controls.pack(side="left", fill="y", padx=10)
+        fr_check_filters = tk.Frame(fr_check_controls)
+        fr_check_filters.pack(side="top", fill="both", expand=True)
+        cb_all_user_checks = tk.Checkbutton(fr_check_filters,
+                                            text="Для всех пользователей",
+                                            # TODO: add variable
+                                            # variable=self._iv_all_user_scripts,
+                                            padx=15, pady=10)
+        cb_all_user_checks.pack(fill="x", expand=True)
+        cb_all_script_checks = tk.Checkbutton(fr_check_filters,
+                                              text="Для всех скриптов",
+                                              # TODO: add variable
+                                              # variable=self._iv_all_user_scripts,
+                                              padx=15, pady=10)
+        cb_all_script_checks.pack(fill="x", expand=True)
+        cb_all_status_checks = tk.Checkbutton(fr_check_filters,
+                                              text="Только завершенные",
+                                              # TODO: add variable
+                                              # variable=self._iv_all_user_scripts,
+                                              padx=15, pady=10)
+        cb_all_status_checks.pack(fill="x", expand=True)
+        lbl_script_filter = tk.Label(fr_check_filters,
+                                      text="Поиск по названию скрипта")
+        lbl_script_filter.pack(fill="x", expand=True)
+        en_check_script_name = tk.Entry(fr_check_filters  # TODO: add variable,
+                                # textvariable=self._sv_script_name
+                                 )
+        en_check_script_name.pack(fill="x", expand=True)
+        lbl_user_filter = tk.Label(fr_check_filters,
+                                   text="Поиск по пользователю")
+        lbl_user_filter.pack(fill="x", expand=True)
+        en_check_user_name = tk.Entry(fr_check_filters  # TODO: add variable,
+                                # textvariable=self._sv_script_name
+                                 )
+        en_check_user_name.pack(fill="x", expand=True)
+        cb_period_checks = tk.Checkbutton(fr_check_filters,
+                                          # TODO: add variable,
+                                          text="Проведенные за период",
+                                          # variable=self._iv_period_scripts,
+                                          padx=15, pady=10)
+        cb_period_checks.pack(fill="x", expand=True)
+        self._ed_check_date_from = DateEntry(fr_check_filters,
+                                             self._log_config,
+                                             "с "  #, TODO: add command
+                                             # command=self._refresh_tb_script
+                                             )
+        self._ed_check_date_from.pack(fill="x", expand=True)
+        self._ed_check_date_from.disable()
+        self._ed_check_date_to = DateEntry(fr_check_filters,
+                                           self._log_config,
+                                           "по "  #, TODO: add command
+                                           # command=self._refresh_tb_script
+                                           )
+        self._ed_check_date_to.pack(fill="x", expand=True)
+        self._ed_check_date_to.disable()
+        fr_check_btns = tk.Frame(fr_check_controls)
+        fr_check_btns.pack(side="top", fill="both", expand=True)
+        btn_rerun_script = tk.Button(fr_check_btns, text="Запустить повторно",
+                                     # TODO: add command
+                                     # command=self._script_del
+                                     )
+        btn_rerun_script.pack(side="bottom", fill="x", pady=2)
+        btn_show_obj = tk.Button(fr_check_btns, text="Просмотреть объекты",
+                                 # TODO: add command
+                                 #  command=self._script_upd
+                                 )
+        btn_show_obj.pack(side="bottom", fill="x", pady=2)
+        page_cnt = 1
+        # TODO: add page_cnt
+        # page_cnt = self._get_page_cnt(self._driver.script_cnt,
+        #                               self._config["tb_script_row_limit"],
+        #                               user_id=
+        #                               None if self._iv_all_user_scripts.get()
+        #                               else self._user_id)
+        self._pgn_check = Pagination(fr_check_controls, 3, page_cnt,
+                                     prev_button="<<",
+                                     next_button=">>",
+                                     # TODO: add command
+                                     # command=self._load_script_page,
+                                     pagination_style=self._config[
+                                         "pagination_style"])
+        self._pgn_check.pack(side="bottom", fill="both", expand=True)
+        self._tb_check = Table(fr_check_tab,
+                               headings=("id", "Название скрипта",
+                                         "Пользователь", "Тип объекта",
+                                         "Дата проверки", "Проверка завершена",
+                                         "Проверено объектов",
+                                         "Выявлено объектов"))
+        self._tb_check.pack(side="right", fill="both", expand=True)
+        # TODO: add load page
+        # self._load_script_page(1)
+        return fr_check_tab

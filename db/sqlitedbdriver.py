@@ -140,7 +140,6 @@ class SqliteDbDriver(BaseDbDriver):
         :return set of records from script table
 
         """
-        self._logger.debug(f"dates: {date_from}; {date_to}")
         self._cursor.execute(
             "select "
             "	s.script_hash,"
@@ -300,3 +299,52 @@ class SqliteDbDriver(BaseDbDriver):
             "set user_script_link_end_date = ?2 "
             "where user_script_link_id = ?1",
             (user_script_link_id, user_script_link_end_date))
+
+    def fact_check_rd_pg(self, limit, offset, user_id, script_id,
+                         user_name_pattern, script_name_pattern, date_from,
+                         date_to):
+        """Reads a part of records from fact_check table for the pagination
+
+        :param limit - row count constraint
+        :param offset - row count for shifting the results
+        :param user_id: identifier from table user for checking availability
+        :param script_id - script table record identifier
+        :param user_name_pattern: user name part for like search
+        :param script_name_pattern: script name part for like search
+        :param date_from: begin date constraint fot user_beg_date
+        :param date_to: end date constraint fot user_beg_date
+        :return set of records from fact_check table
+
+        """
+        self._cursor.execute(
+            "select "
+            "	fc.fact_check_id, "
+            "	s.script_name, "
+            "	u.user_name, "
+            "	ot.object_type_name, "
+            "	fc.fact_check_date, "
+            "	case "
+            "		when fc.fact_check_is_finished = 1 then 'да' "
+            "		else 'нет' end as is_finished, "
+            "	fc.fact_check_obj_count, "
+            "	(select count(ob.object_id)  "
+            "	from object as ob  "
+            "	where ob.fact_check_id = fc.fact_check_id) as odj_cnt "
+            "from fact_check as fc "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "	inner join user as u on u.user_id = usl.user_id "
+            "	inner join script as s on s.script_id = usl.script_id "
+            "	inner join object_type as ot "
+            "       on ot.object_type_id = s.object_type_id "
+            "where s.script_end_date is null "
+            "	and (?3 is null or ?3 = u.user_id)"
+            "	and (?4 is null or ?4 = s.script_id)"
+            "   and (?5 is null or u.user_name like '%' || ?5 || '%') "
+            "   and (?6 is null or s.script_name like '%' || ?6 || '%') "
+            "   and (?7 is null or date(fc.fact_check_date) >= ?7) "
+            "   and (?8 is null or date(fc.fact_check_date) <= ?8) "
+            "limit ?1 offset ?2",
+            (limit, offset, user_id, script_id, user_name_pattern,
+             script_name_pattern, date_from, date_to))
+        return self._cursor.fetchall()
