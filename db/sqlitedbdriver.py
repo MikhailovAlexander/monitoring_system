@@ -35,11 +35,11 @@ class SqliteDbDriver(BaseDbDriver):
                     if self.get_connection():
                         self._cursor.executescript(script_text)
                 except sqlite3.Error as e:
-                    print('Ошибка БД: ' + str(e))  # throw exception
+                    print('Ошибка БД: ' + str(e))  # TODO: throw exception
             else:
-                print('Не найден скрипт инициализации БД')  # throw exception
+                print('Не найден скрипт инициализации БД')  # TODO: throw exception
         else:
-            print('БД уже существует')  # throw exception
+            print('БД уже существует')  # TODO: throw exception
 
     def chk_conn(self):
         """Проверка соединения с БД"""
@@ -300,13 +300,14 @@ class SqliteDbDriver(BaseDbDriver):
             "where user_script_link_id = ?1",
             (user_script_link_id, user_script_link_end_date))
 
-    def fact_check_rd_pg(self, limit, offset, user_id, script_id,
+    def fact_check_rd_pg(self, limit, offset, status_id, user_id, script_id,
                          user_name_pattern, script_name_pattern, date_from,
                          date_to):
         """Reads a part of records from fact_check table for the pagination
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
+        :param status_id: status identifier from fact_check_status table
         :param user_id: identifier from table user for checking availability
         :param script_id - script table record identifier
         :param user_name_pattern: user name part for like search
@@ -338,13 +339,25 @@ class SqliteDbDriver(BaseDbDriver):
             "	inner join object_type as ot "
             "       on ot.object_type_id = s.object_type_id "
             "where s.script_end_date is null "
-            "	and (?3 is null or ?3 = u.user_id)"
-            "	and (?4 is null or ?4 = s.script_id)"
-            "   and (?5 is null or u.user_name like '%' || ?5 || '%') "
-            "   and (?6 is null or s.script_name like '%' || ?6 || '%') "
-            "   and (?7 is null or date(fc.fact_check_date) >= ?7) "
-            "   and (?8 is null or date(fc.fact_check_date) <= ?8) "
+            "	and (?3 is null or ?3 = fcs.fact_check_status_id)"
+            "	and (?4 is null or ?4 = u.user_id)"
+            "	and (?5 is null or ?5 = s.script_id)"
+            "   and (?6 is null or u.user_name like '%' || ?6 || '%') "
+            "   and (?7 is null or s.script_name like '%' || ?7 || '%') "
+            "   and (?8 is null or date(fc.fact_check_date) >= ?8) "
+            "   and (?9 is null or date(fc.fact_check_date) <= ?9) "
             "limit ?1 offset ?2",
-            (limit, offset, user_id, script_id, user_name_pattern,
+            (limit, offset, status_id, user_id, script_id, user_name_pattern,
              script_name_pattern, date_from, date_to))
         return self._cursor.fetchall()
+
+    def fact_check_ins(self, fact_check_que_date, user_script_link_id):
+        """Inserts new link in fact_check table"""
+        self._cursor.execute(
+            "insert into fact_check("
+            "	fact_check_que_date,"
+            "	user_script_link_id,"
+            "	fact_check_status_id) "
+            "values(?,?,1)",
+            (fact_check_que_date, user_script_link_id))
+        return self._cursor.lastrowid

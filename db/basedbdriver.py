@@ -153,13 +153,14 @@ class BaseDbDriver(metaclass=ABCMeta):
         """
         pass
 
-    def fact_check_rd_pg(self, limit, offset, user_id, script_id,
+    def fact_check_rd_pg(self, limit, offset, status_id, user_id, script_id,
                          user_name_pattern, script_name_pattern, date_from,
                          date_to):
         """Reads a part of records from fact_check table for the pagination
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
+        :param status_id: status identifier from fact_check_status table
         :param user_id: identifier from table user for checking availability
         :param script_id - script table record identifier
         :param user_name_pattern: user name part for like search
@@ -168,5 +169,12 @@ class BaseDbDriver(metaclass=ABCMeta):
         :param date_to: end date constraint fot user_beg_date
         :return set of records from fact_check table
 
+        """
+        pass
+
+    def fact_check_ins(self, fact_check_que_date, user_script_link_id):
+        """Inserts new link in fact_check table
+
+        :return inserted row identifier
         """
         pass

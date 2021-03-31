@@ -21,18 +21,27 @@ CREATE TABLE user (
 CREATE UNIQUE INDEX uidx_user_name
 on user (user_name);
 
+CREATE TABLE fact_check_status (
+	fact_check_status_id integer PRIMARY KEY AUTOINCREMENT,
+	fact_check_status_name text NOT NULL
+);
+
+CREATE UNIQUE INDEX uidx_fact_check_status
+on fact_check_status (fact_check_status_name);
+
 CREATE TABLE fact_check (
 	fact_check_id integer PRIMARY KEY AUTOINCREMENT,
-	fact_check_date datetime NOT NULL,
+	fact_check_que_date datetime NOT NULL,
+	fact_check_end_date datetime,
 	fact_check_obj_count integer,
 	user_script_link_id integer NOT NULL,
-	fact_check_is_finished integer NOT NULL DEFAULT 0,
-	FOREIGN KEY (user_script_link_id) REFERENCES user_script_link(user_script_link_id)
-	CHECK(fact_check_is_finished in (0,1))
+	fact_check_status_id integer NOT NULL,
+	FOREIGN KEY (user_script_link_id) REFERENCES user_script_link(user_script_link_id),
+	FOREIGN KEY (fact_check_status_id) REFERENCES fact_check_status(fact_check_status_id)
 );
 
 CREATE UNIQUE INDEX uidx_fact_check_composite
-on fact_check (fact_check_date, user_script_link_id);
+on fact_check (fact_check_que_date, user_script_link_id);
 
 CREATE TABLE object_type (
 	object_type_id integer PRIMARY KEY AUTOINCREMENT,
@@ -80,8 +89,12 @@ CREATE UNIQUE INDEX uidx_user_script_link_composite
 on user_script_link (user_id, script_id, user_script_link_beg_date);
 
 INSERT INTO user(user_name) VALUES('admin'),('test');
-INSERT INTO object_type(object_type_name) VALUES('Файл'),('Запись в БД'),('Объект в БД');
-INSERT INTO error_level(error_level_name) VALUES('trivial'),('warning'),('error');
+INSERT INTO object_type(object_type_name)
+    VALUES('Файл'),('Запись в БД'),('Объект в БД');
+INSERT INTO error_level(error_level_name)
+    VALUES('trivial'),('warning'),('error');
+INSERT INTO fact_check_status(fact_check_status_name)
+    VALUES('В очереди'),('Выполнен'),('Завершен с ошибкой'),('Отменен');
 INSERT INTO script(
 	script_name,
 	script_description,

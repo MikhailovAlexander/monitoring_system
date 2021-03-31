@@ -567,8 +567,17 @@ class MainForm(tk.Tk):
             self._logger.exception(ex)
             messagebox.showerror("Script saving error",
                                  f"Ошибка чтения скрипта: {ex}")
-        if script:
-            pass
+            return
+
+        try:
+            check_id = self._driver.fact_check_ins(datetime.datetime.now(),
+                                                   link_id)
+            self._logger.debug(f"check_id: {check_id}")
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Check saving error",
+                                 f"Ошибка сохранения проверки в бд: {ex}")
+            return
             # TODO: add ScriptQueue
 
     def _get_check_tab(self):
