@@ -425,6 +425,6 @@ class SqliteDbDriver(BaseDbDriver):
             "	object_comment,"
             "	object_author,"
             "	object_date,"
-            "	fact_check_id,"
-            "	error_level_id) "
+            "	error_level_id,"
+            "	fact_check_id) "
             "values(?,?,?,?,?,?,?)", values)

@@ -25,9 +25,10 @@ class scripttest(BaseScript):
         """
         return True
 
-    def run(self):
+    def run(self, fact_check_id):
         """Runs script
 
+        :param fact_check_id - fact_check table record identifier
         :return Count of checked objects and script results (set of records)
         """
         target_dir = os.path.dirname(os.path.dirname(__file__))
@@ -41,7 +42,7 @@ class scripttest(BaseScript):
                     obj = CheckObject(file, path, None, None,
                                       datetime.datetime.fromtimestamp(
                                           os.path.getmtime(path)),
-                                      el)
+                                      el, fact_check_id)
                     self._results.append(obj.to_db_row())
                 self._checked_obj_cnt += 1
         return [self._checked_obj_cnt, self._results]

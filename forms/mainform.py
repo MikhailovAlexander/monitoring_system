@@ -14,7 +14,7 @@ from core.scriptqueue import ScriptQueue
 class MainForm(tk.Tk):
     """Main widget for the program"""
 
-    def __init__(self, driver, log_config, main_form_config):
+    def __init__(self, driver, log_config, main_form_config, queue):
         self._config = main_form_config
         self._log_config = log_config
         logging.config.dictConfig(log_config)
@@ -35,11 +35,8 @@ class MainForm(tk.Tk):
         self._scr_plug = ScriptPlugin(log_config,
                                       self._config["script_plugin_conf"],
                                       driver)
-        self._iv_executing_check = tk.IntVar(value=None)
-        self._iv_executing_check.trace("w", self._on_upd_iv_executing_check)
-        self._scr_queue = ScriptQueue(driver, log_config,
-                                      self._config["script_plugin_conf"],
-                                      self._iv_executing_check)
+        self._scr_queue = ScriptQueue(driver, log_config, self._scr_plug,
+                                      queue)
         self._sv_user_name = tk.StringVar()
         self._sv_user_name.trace("w", self._on_upd_sv_user_name)
         self._tb_user = None
@@ -312,7 +309,7 @@ class MainForm(tk.Tk):
         cb_period_scripts.pack(fill="x", expand=True)
         self._ed_script_date_from = DateEntry(fr_script_filters,
                                               self._log_config,
-                                              "с ",
+                                              "с  ",
                                               command=self._refresh_tb_script)
         self._ed_script_date_from.pack(fill="x", expand=True)
         self._ed_script_date_from.disable()
@@ -346,7 +343,6 @@ class MainForm(tk.Tk):
         btn_run_script = tk.Button(fr_script_btns, text="Запустить скрипт",
                                    command=self._on_clk_btn_run_script)
         btn_run_script.pack(side="bottom", fill="x", pady=2)
-        # TODO: Add script running button
         # TODO: Add checks show button
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
                                       self._config["tb_script_row_limit"],
@@ -415,7 +411,23 @@ class MainForm(tk.Tk):
             messagebox.showerror("Application error",
                                  "Скрипт для запуска не выбран")
             return
-        self._script_run(script_id)
+        link = None
+        try:
+            link = self._driver.user_script_link_srch(self._user_id, script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка проверки видимости скрипта: {ex}")
+        if not link:
+            messagebox.showerror("Application error",
+                                 "Скрипт не доступен текущему пользователю")
+            return
+        try:
+            self._scr_queue.put(script_id, link[0])
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script queue error",
+                                 f"Ошибка добавления скрипта в очередь: {ex}")
 
     def _refresh_tb_script(self, *args):
         self._logger.debug("Refreshing tb_script is running")
@@ -535,8 +547,7 @@ class MainForm(tk.Tk):
                                  "Скрипт для снятия видимости не выбран")
             return
         try:
-            link = self._driver.user_script_link_srch(self._user_id,
-                                                         script_id)
+            link = self._driver.user_script_link_srch(self._user_id, script_id)
         except Exception as ex:
             self._logger.exception(ex)
             messagebox.showerror("Script saving error",
@@ -552,39 +563,6 @@ class MainForm(tk.Tk):
             self._logger.exception(ex)
             messagebox.showerror("Script saving error",
                                  f"Ошибка снятия видимости скрипта: {ex}")
-
-    def _script_run(self, script_id):
-        self._logger.info('Running script')
-        try:
-            link = self._driver.user_script_link_srch(self._user_id, script_id)
-        except Exception as ex:
-            self._logger.exception(ex)
-            messagebox.showerror("Script saving error",
-                                 f"Ошибка проверки видимости скрипта: {ex}")
-        if not link:
-            messagebox.showerror("Application error",
-                                 "Скрипт не доступен текущему пользователю")
-            return
-        link_id = link[0]
-        script = None
-        try:
-            script = self._scr_plug.get_script(script_id)
-        except Exception as ex:
-            self._logger.exception(ex)
-            messagebox.showerror("Script saving error",
-                                 f"Ошибка чтения скрипта: {ex}")
-            return
-
-        try:
-            check_id = self._driver.fact_check_ins(datetime.datetime.now(),
-                                                   link_id)
-            self._logger.debug(f"check_id: {check_id}")
-        except Exception as ex:
-            self._logger.exception(ex)
-            messagebox.showerror("Check saving error",
-                                 f"Ошибка сохранения проверки в бд: {ex}")
-            return
-            # TODO: add ScriptQueue
 
     def _get_check_tab(self):
         self._logger.info('Creating check tab')
@@ -633,7 +611,7 @@ class MainForm(tk.Tk):
         cb_period_checks.pack(fill="x", expand=True)
         self._ed_check_date_from = DateEntry(fr_check_filters,
                                              self._log_config,
-                                             "с "  #, TODO: add command
+                                             "с  "  #, TODO: add command
                                              # command=self._refresh_tb_script
                                              )
         self._ed_check_date_from.pack(fill="x", expand=True)
@@ -682,6 +660,3 @@ class MainForm(tk.Tk):
         # TODO: add load page
         # self._load_script_page(1)
         return fr_check_tab
-
-    def _on_upd_iv_executing_check(self):
-        pass

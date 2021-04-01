@@ -18,18 +18,20 @@ class ErrorLevel(Enum):
 
 class CheckObject(object):
     """Class for script result object"""
-    def __init__(self, name, identifier, comment, author, date, error_level):
+    def __init__(self, name, identifier, comment, author, date, error_level,
+                 fact_check_id):
         self._name = name
         self._identifier = identifier
         self._comment = comment
         self._author = author
         self._date = date
         self._error_level = error_level
+        self._fact_check_id = fact_check_id
 
     def to_db_row(self):
         """Returns tuple of values to insert in db"""
         return (self._name, self._identifier, self._comment, self._author,
-                self._date, self._error_level.value)
+                self._date, self._error_level.value, self._fact_check_id)
 
 
 class BaseScript(object):
@@ -46,9 +48,10 @@ class BaseScript(object):
         pass
 
     @abstractmethod
-    def run(self):
+    def run(self, fact_check_id):
         """Runs script
 
+        :param fact_check_id - fact_check table record identifier
         :return Count of checked objects and script results (set of records)
         """
         pass
