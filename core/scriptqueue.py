@@ -2,6 +2,7 @@ import logging
 import logging.config
 import datetime
 
+QUEUE = 1
 EXECUTE = 2
 FAIL = 3
 CANCEL = 4
@@ -28,6 +29,11 @@ class QueueItem(object):
         """Returns identifier from script table"""
         return self._script_id
 
+    @property
+    def script_name(self):
+        """Returns script name from file"""
+        return self._script.name
+
     def run_and_save(self, driver):
         """Runs script and save results in db
 
@@ -35,11 +41,11 @@ class QueueItem(object):
         :return void
 
         """
-        status = driver.fact_check_rd_status(self._fact_check_id)
-        if not status or status == CANCEL:
-            return
         test = False
         try:
+            status = driver.fact_check_rd_status(self._fact_check_id)
+            if not status or status[0] == CANCEL:
+                return
             test = self._script.test()
         except Exception as ex:
             self._logger.exception(ex)
@@ -97,6 +103,42 @@ class ScriptQueue(object):
         self._scr_plug = script_plugin
         self._fill_from_db()
 
+    def clean(self):
+        """Extracts all checks from the queue
+
+        :return void
+
+        """
+        while not self._queue.empty():
+            self._queue.get()
+
+    def clean_and_cancel(self):
+        """Extracts all checks from the queue and set cancel status
+
+        :return void
+
+        """
+        items = []
+        while not self._queue.empty():
+            items.append(self._queue.get())
+        self._logger.debug(f"{items}")
+        for item in items:
+            try:
+                status = self._driver.fact_check_rd_status(item.fact_check_id)
+                if status:
+                    if status[0] == QUEUE:
+                        self._driver.fact_check_upd(item.fact_check_id,
+                                                    datetime.datetime.now(),
+                                                    fact_check_obj_count=None,
+                                                    fact_check_status_id=CANCEL)
+            except Exception as ex:
+                self._logger.exception(ex)
+
+    def refresh_from_db(self, current_check_id=None):
+        """Cleans queue and fills it from db"""
+        self.clean()
+        self._fill_from_db(current_check_id)
+
     def put(self, script_id, link_id):
         """Checks script and puts it to the queue
 
@@ -121,15 +163,15 @@ class ScriptQueue(object):
         self._queue.put(QueueItem(self._log_config, script, script_id,
                                   fact_check_id))
 
-    def _fill_from_db(self):
+    def _fill_from_db(self, current_check_id=None):
         try:
             items = self._get_check_que_db()
         except Exception as ex:
             self._logger.exception(ex)
             raise RuntimeError(f"Error during checks search: {ex}")
         for item in items:
-            self._queue.put(item)
-        # self._process.start()
+            if item.fact_check_id != current_check_id:
+                self._queue.put(item)
 
     def _get_check_que_db(self):
         checks = self._driver.fact_check_que()

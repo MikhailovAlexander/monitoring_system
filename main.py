@@ -29,7 +29,7 @@ def get_logger(log_conf):
     return logging.getLogger(__name__)
 
 
-def queue_handle(_queue, _logger, _db_mod_name, _db_cls_name, _base_db_driver,
+def queue_handle(_tk_queue, _queue, _logger, _db_mod_name, _db_cls_name, _base_db_driver,
                  _log_config, _db_config):
     """Script queue handle for running scripts in separated thread"""
     logger.debug("queue_handle is running")
@@ -38,10 +38,25 @@ def queue_handle(_queue, _logger, _db_mod_name, _db_cls_name, _base_db_driver,
                                             log_config=_log_config,
                                             db_config=_db_config)
     queue_driver.get_connection()
-    while True:
-        item = _queue.get()
-        item.run_and_save(queue_driver)
-        _queue.task_done()
+    try:
+        while _tk_queue.empty():
+            pass
+        root_vars = _tk_queue.get()
+        sv_check_name = root_vars[0]
+        iv_check_id = root_vars[1]
+        sv_check_name.set("Текущая проверка: отсутствует")
+        iv_check_id.set(None)
+        while True:
+            item = _queue.get()
+            sv_check_name.set(f"Текущая проверка: скрипт {item.script_name}")
+            iv_check_id.set(item.fact_check_id)
+            item.run_and_save(queue_driver)
+            _queue.task_done()
+            if _queue.empty():
+                sv_check_name.set("Текущая проверка: отсутствует")
+                iv_check_id.set(None)
+    finally:
+        queue_driver.close_connection()
 
 
 log_config = load_json(LOG_CONF_FILE_PATH)
@@ -63,15 +78,21 @@ if not driver.is_db_exist():
 driver.get_connection()
 logger.info('DB connection was opened')
 
-queue = Queue()
-thread = threading.Thread(target=queue_handle, args=(queue, logger, db_mod_name,
+scr_queue = Queue()
+root_queue = Queue()
+thread = threading.Thread(target=queue_handle, args=(root_queue, scr_queue,
+                                                     logger, db_mod_name,
                                                      db_cls_name, BaseDbDriver,
                                                      log_config, db_conf),
                           daemon=True)
-thread.start()
-queue.join()
 
-root = MainForm(driver, log_config, app_config["main_form_conf"], queue)
+scr_queue.join()
+root_queue.join()
+
+root = MainForm(driver, log_config, app_config["main_form_conf"], scr_queue)
+root_queue.put([root.sv_current_check_name, root.iv_current_check_id])
+thread.start()
+
 logger.info('MainForm was started')
 root.mainloop()
 logger.info('MainForm was closed')

@@ -21,6 +21,8 @@ class MainForm(tk.Tk):
         self._logger = logging.getLogger(__name__)
         self._logger.info('Creating MainForm')
         super().__init__()
+        self.sv_current_check_name = tk.StringVar(value="NO SCRIPT")
+        self.iv_current_check_id = tk.IntVar()
         self.attributes('-alpha', 0.0)  # make window transparent
         self._driver = driver
         self._user_id = None
@@ -59,9 +61,6 @@ class MainForm(tk.Tk):
 
         self._create_form()
 
-    def _close(self):
-        self.destroy()
-
     def _run_entry_form(self):
         self._logger.info('Running EntryForm')
         ef = EntryForm(self, self._user_dict)
@@ -73,13 +72,16 @@ class MainForm(tk.Tk):
         fr_cur_user = tk.Frame(self)
         fr_cur_user.pack(side="top", fill=tk.Y)
         lbl_cur_users = tk.Label(fr_cur_user, text="Текущий пользователь ")
-        lbl_cur_users.pack(side="left", fill="x", expand=True)
+        lbl_cur_users.pack(side="left")
         self._cbx_users = ttk.Combobox(fr_cur_user, width=50, height=10,
                                        values=list(self._user_dict.keys()),
                                        state="readonly")
-        self._cbx_users.pack(side="left", fill="x", expand=True)
+        self._cbx_users.pack(side="left")
         self._cbx_users.current(self._get_user_index())
         self._cbx_users.bind('<<ComboboxSelected>>', self._on_upd_cbx_users)
+        lbl_cur_check = tk.Label(fr_cur_user,
+                                 textvariable=self.sv_current_check_name)
+        lbl_cur_check.pack(side="right", padx=30)
         self._add_menu_bar()
         nb = ttk.Notebook(self)
         nb.pack(side="bottom", fill="both", expand=True)
@@ -99,10 +101,40 @@ class MainForm(tk.Tk):
         new_item.add_command(label="Выход", command=self._close)
         menu.add_cascade(label="Файл", menu=new_item)
         item = tk.Menu(menu)
-        menu.add_cascade(label="Options", menu=item)
-        item.add_command(label='Option 1')
-        item.add_command(label='Option 2')
+        menu.add_cascade(label="Очередь проверок", menu=item)
+        item.add_command(label="Очистить очередь", command=self._queue_clean)
+        item.add_command(label="Очистить очередь и отменить проверки",
+                         command=self._queue_clean_and_cancel)
+        item.add_command(label="Очистить очередь и заполнить из бд",
+                         command=self._queue_refresh_from_db)
         self.config(menu=menu)
+
+    def _close(self):
+        self.destroy()
+
+    def _queue_clean(self):
+        try:
+            self._scr_queue.clean()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script queue error",
+                                 f"Ошибка очистки очереди проверок: {ex}")
+
+    def _queue_clean_and_cancel(self):
+        try:
+            self._scr_queue.clean_and_cancel()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script queue error",
+                                 f"Ошибка очистки очереди проверок: {ex}")
+
+    def _queue_refresh_from_db(self):
+        try:
+            self._scr_queue.refresh_from_db(self.iv_current_check_id.get())
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script queue error",
+                                 f"Ошибка обновления очереди проверок: {ex}")
 
     def _on_upd_cbx_users(self, *args):
         user_id = self._user_dict[self._cbx_users.get()]
