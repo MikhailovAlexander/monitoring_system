@@ -7,8 +7,9 @@
       "isolation_level":null
    },
    "main_form_conf":{
-      "tb_user_row_limit":2,
-      "tb_script_row_limit":2,
+      "tb_user_row_limit":20,
+      "tb_script_row_limit":20,
+      "tb_check_row_limit":20,
       "script_plugin_conf": {
          "folder": "scripts",
          "prefix": "script"

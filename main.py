@@ -90,6 +90,7 @@ scr_queue.join()
 root_queue.join()
 
 root = MainForm(driver, log_config, app_config["main_form_conf"], scr_queue)
+root.geometry("1200x700")
 root_queue.put([root.sv_current_check_name, root.iv_current_check_id])
 thread.start()
 

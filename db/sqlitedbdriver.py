@@ -312,6 +312,43 @@ class SqliteDbDriver(BaseDbDriver):
             "where user_script_link_id = ?1",
             (user_script_link_id, user_script_link_end_date))
 
+    def fact_check_cnt(self, status_id, user_id, script_id, user_name_pattern,
+                       script_name_pattern, date_from, date_to):
+        """Counts a part of records from fact_check table for the pagination
+
+        :param status_id: status identifier from fact_check_status table
+        :param user_id: identifier from table user for checking availability
+        :param script_id - script table record identifier
+        :param user_name_pattern: user name part for like search
+        :param script_name_pattern: script name part for like search
+        :param date_from: begin date constraint fot user_beg_date
+        :param date_to: end date constraint fot user_beg_date
+        :return count of records from fact_check table
+
+        """
+        self._cursor.execute(
+            "select count(fc.fact_check_id) as cnt "
+            "from fact_check as fc "
+            "	inner join fact_check_status as fcs "
+            "		on fcs.fact_check_status_id = fc.fact_check_status_id "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "	inner join user as u on u.user_id = usl.user_id "
+            "	inner join script as s on s.script_id = usl.script_id "
+            "	inner join object_type as ot "
+            "       on ot.object_type_id = s.object_type_id "
+            "where s.script_end_date is null "
+            "	and (?1 is null or ?1 = fcs.fact_check_status_id)"
+            "	and (?2 is null or ?2 = u.user_id)"
+            "	and (?3 is null or ?3 = s.script_id)"
+            "   and (?4 is null or u.user_name like '%' || ?4 || '%') "
+            "   and (?5 is null or s.script_name like '%' || ?5 || '%') "
+            "   and (?6 is null or date(fc.fact_check_que_date) >= ?6) "
+            "   and (?7 is null or date(fc.fact_check_que_date) <= ?7) ",
+            (status_id, user_id, script_id, user_name_pattern,
+             script_name_pattern, date_from, date_to))
+        return self._cursor.fetchone()[0]
+
     def fact_check_rd_pg(self, limit, offset, status_id, user_id, script_id,
                          user_name_pattern, script_name_pattern, date_from,
                          date_to):
@@ -335,7 +372,8 @@ class SqliteDbDriver(BaseDbDriver):
             "	s.script_name, "
             "	u.user_name, "
             "	ot.object_type_name, "
-            "	fc.fact_check_date, "
+            "	fc.fact_check_que_date, "
+            "	fc.fact_check_end_date, "
             "	fcs.fact_check_status_name, "
             "	fc.fact_check_obj_count, "
             "	(select count(ob.object_id)  "
@@ -356,8 +394,8 @@ class SqliteDbDriver(BaseDbDriver):
             "	and (?5 is null or ?5 = s.script_id)"
             "   and (?6 is null or u.user_name like '%' || ?6 || '%') "
             "   and (?7 is null or s.script_name like '%' || ?7 || '%') "
-            "   and (?8 is null or date(fc.fact_check_date) >= ?8) "
-            "   and (?9 is null or date(fc.fact_check_date) <= ?9) "
+            "   and (?8 is null or date(fc.fact_check_que_date) >= ?8) "
+            "   and (?9 is null or date(fc.fact_check_que_date) <= ?9) "
             "limit ?1 offset ?2",
             (limit, offset, status_id, user_id, script_id, user_name_pattern,
              script_name_pattern, date_from, date_to))

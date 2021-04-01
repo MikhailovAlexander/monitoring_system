@@ -43,6 +43,8 @@ class MainForm(tk.Tk):
         self._sv_user_name.trace("w", self._on_upd_sv_user_name)
         self._tb_user = None
         self._pgn_user = None
+        self._iv_showed_script_id = tk.IntVar()
+        self._iv_showed_script_id.trace("w", self._on_upd_iv_showed_script_id)
         self._iv_all_user_scripts = tk.IntVar(value=1)
         self._iv_all_user_scripts.trace("w", self._refresh_tb_script)
         self._sv_script_name = tk.StringVar()
@@ -54,6 +56,13 @@ class MainForm(tk.Tk):
         self._tb_script = None
         self._pgn_script = None
 
+        self._lbl_check_context = None
+        self._iv_all_user_checks = tk.IntVar(value=1)
+        self._iv_all_user_checks.trace("w", self._refresh_tb_check)
+        self._iv_all_script_checks = tk.IntVar(value=1)
+        self._iv_all_script_checks.trace("w", self._refresh_tb_check)
+        self._iv_status_checks = tk.IntVar()
+        self._iv_status_checks.trace("w", self._refresh_tb_check)
         self._ed_check_date_from = None
         self._ed_check_date_to = None
         self._tb_check = None
@@ -142,6 +151,7 @@ class MainForm(tk.Tk):
             return
         self._user_id = user_id
         self._refresh_tb_script()
+        self._refresh_tb_check()
 
     def _get_page_cnt(self, driver_method, row_limit, **kwargs):
         row_cnt = 0
@@ -375,7 +385,9 @@ class MainForm(tk.Tk):
         btn_run_script = tk.Button(fr_script_btns, text="Запустить скрипт",
                                    command=self._on_clk_btn_run_script)
         btn_run_script.pack(side="bottom", fill="x", pady=2)
-        # TODO: Add checks show button
+        btn_show_checks = tk.Button(fr_script_btns, text="Показать проверки",
+                                    command=self._on_clk_btn_show_checks)
+        btn_show_checks.pack(side="bottom", fill="x", pady=2)
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
                                       self._config["tb_script_row_limit"],
                                       user_id=
@@ -460,6 +472,32 @@ class MainForm(tk.Tk):
             self._logger.exception(ex)
             messagebox.showerror("Script queue error",
                                  f"Ошибка добавления скрипта в очередь: {ex}")
+
+    def _on_clk_btn_show_checks(self, *args):
+        script_id = self._tb_script.get_selected_id
+        if not script_id:
+            messagebox.showerror("Application error",
+                                 "Скрипт не выбран")
+            return
+        self._iv_showed_script_id.set(script_id)
+        self._reset_tb_check_params()
+
+    def _on_upd_iv_showed_script_id(self, *args):
+        script_id = self._iv_showed_script_id.get()
+        if not script_id:
+            return
+        script_rec = None
+        try:
+            script_rec = self._driver.script_rd(script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка поиска скрипта: {ex}")
+        if script_rec:
+            self._lbl_check_context.config(text="Выбранный скрипт: "
+                                                f"{script_rec[1]}")
+        else:
+            self._lbl_check_context.config(text="Выбранный скрипт: не задан")
 
     def _refresh_tb_script(self, *args):
         self._logger.debug("Refreshing tb_script is running")
@@ -601,26 +639,49 @@ class MainForm(tk.Tk):
         fr_check_tab = tk.Frame(self)
         fr_check_controls = tk.Frame(fr_check_tab)
         fr_check_controls.pack(side="left", fill="y", padx=10)
+        self._lbl_check_context = tk.Label(fr_check_controls,
+                                           text="Выбранный скрипт: не задан")
+        self._lbl_check_context.pack(fill="x", expand=True)
         fr_check_filters = tk.Frame(fr_check_controls)
         fr_check_filters.pack(side="top", fill="both", expand=True)
         cb_all_user_checks = tk.Checkbutton(fr_check_filters,
                                             text="Для всех пользователей",
-                                            # TODO: add variable
-                                            # variable=self._iv_all_user_scripts,
-                                            padx=15, pady=10)
+                                            variable=self._iv_all_user_checks,
+                                            padx=15)
         cb_all_user_checks.pack(fill="x", expand=True)
         cb_all_script_checks = tk.Checkbutton(fr_check_filters,
                                               text="Для всех скриптов",
-                                              # TODO: add variable
-                                              # variable=self._iv_all_user_scripts,
-                                              padx=15, pady=10)
+                                              variable=
+                                              self._iv_all_script_checks,
+                                              padx=15)
         cb_all_script_checks.pack(fill="x", expand=True)
-        cb_all_status_checks = tk.Checkbutton(fr_check_filters,
-                                              text="Только завершенные",
-                                              # TODO: add variable
-                                              # variable=self._iv_all_user_scripts,
-                                              padx=15, pady=10)
-        cb_all_status_checks.pack(fill="x", expand=True)
+        rb_all_status_checks = tk.Radiobutton(fr_check_filters,
+                                              text="Любой статус", value=-1,
+                                              variable=self._iv_status_checks,
+                                              padx=15)
+        rb_all_status_checks.pack(fill="x", expand=True)
+        rb_qu_status_checks = tk.Radiobutton(fr_check_filters,
+                                             text="В очереди", value=1,
+                                             variable=self._iv_status_checks,
+                                             padx=15)
+        rb_qu_status_checks.pack(fill="x", expand=True)
+        rb_ex_status_checks = tk.Radiobutton(fr_check_filters,
+                                             text="Выполненные", value=2,
+                                             variable=self._iv_status_checks,
+                                             padx=15)
+        rb_ex_status_checks.pack(fill="x", expand=True)
+        rb_fl_status_checks = tk.Radiobutton(fr_check_filters,
+                                             text="Завершенные с ошибкой",
+                                             value=3,
+                                             variable=self._iv_status_checks,
+                                             padx=15)
+        rb_fl_status_checks.pack(fill="x", expand=True)
+        rb_cl_status_checks = tk.Radiobutton(fr_check_filters,
+                                             text="Отмененные",
+                                             value=4,
+                                             variable=self._iv_status_checks,
+                                             padx=15)
+        rb_cl_status_checks.pack(fill="x", expand=True)
         lbl_script_filter = tk.Label(fr_check_filters,
                                       text="Поиск по названию скрипта")
         lbl_script_filter.pack(fill="x", expand=True)
@@ -667,28 +728,96 @@ class MainForm(tk.Tk):
                                  #  command=self._script_upd
                                  )
         btn_show_obj.pack(side="bottom", fill="x", pady=2)
-        page_cnt = 1
-        # TODO: add page_cnt
-        # page_cnt = self._get_page_cnt(self._driver.script_cnt,
-        #                               self._config["tb_script_row_limit"],
-        #                               user_id=
-        #                               None if self._iv_all_user_scripts.get()
-        #                               else self._user_id)
+        page_cnt = self._get_page_cnt(self._driver.fact_check_cnt,
+                                      self._config["tb_check_row_limit"],
+                                      status_id=None, user_id=None,
+                                      script_id=None,
+                                      user_name_pattern=None,
+                                      script_name_pattern=None,
+                                      date_from=None, date_to=None)
         self._pgn_check = Pagination(fr_check_controls, 3, page_cnt,
                                      prev_button="<<",
                                      next_button=">>",
-                                     # TODO: add command
-                                     # command=self._load_script_page,
+                                     command=self._load_check_page,
                                      pagination_style=self._config[
                                          "pagination_style"])
         self._pgn_check.pack(side="bottom", fill="both", expand=True)
         self._tb_check = Table(fr_check_tab,
                                headings=("id", "Название скрипта",
                                          "Пользователь", "Тип объекта",
-                                         "Дата проверки", "Проверка завершена",
+                                         "Дата постановки в очередь",
+                                         "Дата выполнения",
+                                         "Статус",
                                          "Проверено объектов",
                                          "Выявлено объектов"))
         self._tb_check.pack(side="right", fill="both", expand=True)
-        # TODO: add load page
-        # self._load_script_page(1)
+        self._load_check_page(1)
         return fr_check_tab
+
+    def _load_check_page(self, page_num):
+        self._logger.debug("Loading page for tb_check is running, "
+                           f"page: {page_num}")
+        limit = self._config["tb_script_row_limit"]
+        offset = (page_num - 1) * limit
+        user_id = None if self._iv_all_user_checks.get() else self._user_id
+        script_id = None if self._iv_all_script_checks.get()\
+            else self._iv_showed_script_id.get()
+        status_id = self._iv_status_checks.get()
+        status_id = None if status_id == -1 else status_id
+        self._logger.debug(f"status_id: {status_id}")
+        # TODO: add params
+        # name_pattern = None
+        # value = self._sv_script_name.get()
+        # if value and value.strip():
+        #     name_pattern = value
+        # date_from = self._ed_script_date_from.get()
+        # date_to = self._ed_script_date_to.get()
+        check_rec = None
+        try:
+            check_rec = self._driver.fact_check_rd_pg(limit, offset,
+                                                      # TODO: add params
+                                                      status_id=status_id,
+                                                      user_id=user_id,
+                                                      script_id=script_id,
+                                                      user_name_pattern=None,
+                                                      script_name_pattern=None,
+                                                      date_from=None,
+                                                      date_to=None)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения проверок из БД: {ex}")
+        self._tb_check.clear()
+        if check_rec:
+            self._tb_check.insert(check_rec)
+
+    def _refresh_tb_check(self, *args):
+        self._logger.debug("Refreshing tb_check is running")
+        cur_page = self._pgn_check.current_page
+        cur_page_cnt = self._pgn_check.total_pages
+        user_id = None if self._iv_all_user_checks.get() else self._user_id
+        script_id = None if self._iv_all_script_checks.get()\
+            else self._iv_showed_script_id.get()
+        status_id = self._iv_status_checks.get()
+        status_id = None if status_id == -1 else status_id
+        # TODO: add params
+        page_cnt = self._get_page_cnt(self._driver.fact_check_cnt,
+                                      self._config["tb_user_row_limit"],
+                                      status_id=status_id,
+                                      user_id=user_id,
+                                      script_id=script_id,
+                                      user_name_pattern=None,
+                                      script_name_pattern=None,
+                                      date_from=None,
+                                      date_to=None)
+        page_cnt = max(1, page_cnt)
+        if cur_page_cnt != page_cnt:
+            self._logger.debug(f"cur_page:{cur_page}; page_cnt:{page_cnt}")
+            cur_page = min(cur_page, page_cnt)
+            self._pgn_check.update(page_cnt, cur_page)
+        self._load_check_page(cur_page)
+
+    def _reset_tb_check_params(self):
+        self._iv_all_user_checks.set(1)
+        self._iv_all_script_checks.set(0)
+        self._iv_status_checks.set(None)

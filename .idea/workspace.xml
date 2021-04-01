@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev_script_queue script queue was updated">
-      <change afterPath="$PROJECT_DIR$/scripts/scripttestlong.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/scriptqueue.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/scriptqueue.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/app_conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/core/app_conf.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/basedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/sqlitedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -23,7 +24,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="dev" />
+        <entry key="$PROJECT_DIR$" value="dev_script_queue" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
