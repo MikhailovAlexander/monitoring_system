@@ -81,6 +81,24 @@ class MainForm(tk.Tk):
         self._pgn_check = None
 
         self._lbl_object_context = None
+        self._iv_all_user_obj = tk.IntVar(value=1)
+        self._iv_all_user_obj.trace("w", self._refresh_tb_obj)
+        self._iv_all_check_obj = tk.IntVar(value=1)
+        self._iv_all_check_obj.trace("w", self._refresh_tb_obj)
+        self._iv_status_obj = tk.IntVar(value=-1)
+        self._iv_status_obj.trace("w", self._refresh_tb_obj)
+        self._sv_obj_script_name = tk.StringVar()
+        self._sv_obj_script_name.trace("w", self._refresh_tb_obj)
+        self._sv_obj_name = tk.StringVar()
+        self._sv_obj_name.trace("w", self._refresh_tb_obj)
+        self._iv_period_checks_obj = tk.IntVar(value=0)
+        self._iv_period_checks_obj.trace("w", self._on_upd_iv_period_checks_obj)
+        self._ed_check_obj_date_from = None
+        self._ed_check_obj_date_to = None
+        self._iv_period_obj = tk.IntVar(value=0)
+        self._iv_period_obj.trace("w", self._on_upd_iv_period_obj)
+        self._pgn_obj = None
+        self._tb_obj = None
 
         self._create_form()
 
@@ -111,9 +129,11 @@ class MainForm(tk.Tk):
         fr_user_tab = self._get_user_tab()
         fr_script_tab = self._get_script_tab()
         fr_check_tab = self._get_check_tab()
+        fr_obj_tab = self._get_object_tab()
         self._tab.add(fr_user_tab, text="Пользователи")
         self._tab.add(fr_script_tab, text="Скрипты")
         self._tab.add(fr_check_tab, text="Проверки")
+        self._tab.add(fr_obj_tab, text="Объекты")
 
     def _add_menu_bar(self):
         self._logger.info("Adding menu bar")
@@ -411,8 +431,8 @@ class MainForm(tk.Tk):
                                       prev_button="<<",
                                       next_button=">>",
                                       command=self._load_script_page,
-                                      pagination_style=self._config[
-                                          "pagination_style"])
+                                      pagination_style=
+                                      self._config["pagination_style"])
         self._pgn_script.pack(side="bottom", fill="both", expand=True)
         self._tb_script = Table(fr_script_tab,
                                 headings=("id", "Название", "Описание", "Автор",
@@ -604,9 +624,9 @@ class MainForm(tk.Tk):
             messagebox.showerror("Application error",
                                  "Скрипт для добавления не выбран")
             return
+        link = None
         try:
-            link = self._driver.user_script_link_srch(self._user_id,
-                                                         script_id)
+            link = self._driver.user_script_link_srch(self._user_id, script_id)
         except Exception as ex:
             self._logger.exception(ex)
             messagebox.showerror("Script saving error",
@@ -756,8 +776,7 @@ class MainForm(tk.Tk):
                                headings=("id", "Название скрипта",
                                          "Пользователь", "Тип объекта",
                                          "Дата постановки в очередь",
-                                         "Дата выполнения",
-                                         "Статус",
+                                         "Дата выполнения", "Статус",
                                          "Проверено объектов",
                                          "Выявлено объектов"))
         self._tb_check.pack(side="right", fill="both", expand=True)
@@ -954,3 +973,129 @@ class MainForm(tk.Tk):
         #     self._lbl_object_context.config(text="Выбранная проверка: "
         #                                          "не задана")
 
+    def _get_object_tab(self):
+        self._logger.info('Creating object tab')
+        fr_obj_tab = tk.Frame(self)
+        fr_obj_controls = tk.Frame(fr_obj_tab)
+        fr_obj_controls.pack(side="left", fill="y", padx=10)
+        self._lbl_object_context = tk.Label(fr_obj_controls,
+                                            text="Выбранная проверка: "
+                                                 "не задана")
+        self._lbl_object_context.pack(fill="x", expand=True)
+        fr_obj_filters = tk.Frame(fr_obj_controls)
+        fr_obj_filters.pack(side="top", fill="both", expand=True)
+        cb_all_user_obj = tk.Checkbutton(fr_obj_controls,
+                                         text="Для всех пользователей",
+                                         variable=self._iv_all_user_obj,
+                                         padx=15)
+        cb_all_user_obj.pack(fill="x", expand=True)
+        cb_all_check_obj = tk.Checkbutton(fr_obj_controls,
+                                          text="Для всех проверок",
+                                          variable=self._iv_all_check_obj,
+                                          padx=15)
+        cb_all_check_obj.pack(fill="x", expand=True)
+        rb_all_status_obj = tk.Radiobutton(fr_obj_controls,
+                                           text="Любой статус", value=-1,
+                                           variable=self._iv_status_obj,
+                                           padx=15)
+        rb_all_status_obj.pack(fill="x", expand=True)
+        rb_tr_status_obj = tk.Radiobutton(fr_obj_controls, text="Trivial",
+                                          value=1, variable=self._iv_status_obj,
+                                          padx=15)
+        rb_tr_status_obj.pack(fill="x", expand=True)
+        rb_wr_status_obj = tk.Radiobutton(fr_obj_controls, text="Warning",
+                                          value=2, variable=self._iv_status_obj,
+                                          padx=15)
+        rb_wr_status_obj.pack(fill="x", expand=True)
+        rb_er_status_obj = tk.Radiobutton(fr_obj_controls, text="Error",
+                                          value=3, variable=self._iv_status_obj,
+                                          padx=15)
+        rb_er_status_obj.pack(fill="x", expand=True)
+        lbl_script_filter = tk.Label(fr_obj_controls,
+                                     text="Поиск по названию скрипта")
+        lbl_script_filter.pack(fill="x", expand=True)
+        en_check_script_name = tk.Entry(fr_obj_controls,
+                                        textvariable=self._sv_obj_script_name)
+        en_check_script_name.pack(fill="x", expand=True)
+        lbl_obj_filter = tk.Label(fr_obj_controls, text="Поиск по объекту")
+        lbl_obj_filter.pack(fill="x", expand=True)
+        en_obj_name = tk.Entry(fr_obj_controls, textvariable=self._sv_obj_name)
+        en_obj_name.pack(fill="x", expand=True)
+        cb_period_checks = tk.Checkbutton(fr_obj_controls,
+                                          text="По проерке за период",
+                                          variable=self._iv_period_checks_obj,
+                                          padx=15, pady=10)
+        cb_period_checks.pack(fill="x", expand=True)
+        self._ed_check_obj_date_from = DateEntry(fr_obj_controls,
+                                                 self._log_config,
+                                                 "с  ",
+                                                 command=self._refresh_tb_obj)
+        self._ed_check_obj_date_from.pack(fill="x", expand=True)
+        self._ed_check_obj_date_from.disable()
+        self._ed_check_obj_date_to = DateEntry(fr_obj_controls,
+                                               self._log_config,
+                                               "по ",
+                                               command=self._refresh_tb_obj)
+        self._ed_check_obj_date_to.pack(fill="x", expand=True)
+        self._ed_check_obj_date_to.disable()
+        cb_period_obj = tk.Checkbutton(fr_obj_controls,
+                                       text="По объекту за период",
+                                       variable=self._iv_period_obj,
+                                       padx=15, pady=10)
+        cb_period_obj.pack(fill="x", expand=True)
+        self._ed_obj_date_from = DateEntry(fr_obj_controls,
+                                           self._log_config,
+                                           "с  ",
+                                           command=self._refresh_tb_obj)
+        self._ed_obj_date_from.pack(fill="x", expand=True)
+        self._ed_obj_date_from.disable()
+        self._ed_obj_date_to = DateEntry(fr_obj_controls,
+                                         self._log_config,
+                                         "по ",
+                                         command=self._refresh_tb_obj)
+        self._ed_obj_date_to.pack(fill="x", expand=True)
+        self._ed_obj_date_to.disable()
+        fr_obj_btns = tk.Frame(fr_obj_controls)
+        fr_obj_btns.pack(side="top", fill="both", expand=True)
+        page_cnt = self._get_page_cnt(self._driver.object_cnt,
+                                      self._config["tb_object_row_limit"],
+                                      user_id=None, fact_check_id=None,
+                                      error_level_id=None,
+                                      object_name_pattern=None,
+                                      script_name_pattern=None,
+                                      fact_check_end_date_from=None,
+                                      fact_check_end_date_to=None,
+                                      object_date_from=None,
+                                      object_date_to=None)
+        self._pgn_obj = Pagination(fr_obj_controls, 3, page_cnt,
+                                   prev_button="<<",
+                                   next_button=">>",
+                                   command=self._load_obj_page,
+                                   pagination_style=self._config[
+                                         "pagination_style"])
+        self._pgn_obj.pack(side="bottom", fill="both", expand=True)
+        self._tb_obj = Table(fr_obj_tab,
+                             headings=("id", "Название скрипта",
+                                       "Пользователь",
+                                       "Дата выполнения проверки",
+                                       "Название объекта",
+                                       "Идентификатор объекта",
+                                       "Комментарий",
+                                       "Автор",
+                                       "Дата объекта",
+                                       "Уровень реагирования"))
+        self._tb_obj.pack(side="right", fill="both", expand=True)
+        self._load_obj_page(1)
+        return fr_obj_tab
+
+    def _refresh_tb_obj(self):
+        pass
+
+    def _on_upd_iv_period_checks_obj(self):
+        pass
+
+    def _on_upd_iv_period_obj(self):
+        pass
+
+    def _load_obj_page(self, num_page):
+        pass

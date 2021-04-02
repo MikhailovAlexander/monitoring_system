@@ -249,3 +249,49 @@ class BaseDbDriver(metaclass=ABCMeta):
     def object_ins(self, values):
         """Inserts set of new records in the object table"""
         pass
+
+    def object_rd_pg(self, limit, offset, user_id, fact_check_id,
+                     error_level_id, object_name_pattern, script_name_pattern,
+                     fact_check_end_date_from, fact_check_end_date_to,
+                     object_date_from, object_date_to):
+        """Reads a part of records from object table for the pagination
+
+        :param limit: row count constraint
+        :param offset: row count for shifting the results
+        :param user_id: identifier from table user for checking availability
+        :param fact_check_id: identifier from fact_check table
+        :param error_level_id: identifier from error_level table
+        :param object_name_pattern: object name part for like search
+        :param script_name_pattern: script name part for like search
+        :param fact_check_end_date_from: begin date constraint
+        for fact_check_end_date
+        :param fact_check_end_date_to: end date constraint
+        for fact_check_end_date
+        :param object_date_from: begin date constraint for object_date
+        :param object_date_to: end date constraint for object_date
+        :return set of records from object table
+
+        """
+        pass
+
+    def object_cnt(self, user_id, fact_check_id, error_level_id,
+                   object_name_pattern, script_name_pattern,
+                   fact_check_end_date_from, fact_check_end_date_to,
+                   object_date_from, object_date_to):
+        """Counts a part of records from object table for the pagination
+
+        :param user_id: identifier from table user for checking availability
+        :param fact_check_id: identifier from fact_check table
+        :param error_level_id: identifier from error_level table
+        :param object_name_pattern: object name part for like search
+        :param script_name_pattern: script name part for like search
+        :param fact_check_end_date_from: begin date constraint
+        for fact_check_end_date
+        :param fact_check_end_date_to: end date constraint
+        for fact_check_end_date
+        :param object_date_from: begin date constraint for object_date
+        :param object_date_to: end date constraint for object_date
+        :return count of records from object table
+
+        """
+        pass

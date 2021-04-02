@@ -10,6 +10,7 @@
       "tb_user_row_limit":20,
       "tb_script_row_limit":20,
       "tb_check_row_limit":20,
+      "tb_object_row_limit":20,
       "script_plugin_conf": {
          "folder": "scripts",
          "prefix": "script"

@@ -512,3 +512,109 @@ class SqliteDbDriver(BaseDbDriver):
             "	error_level_id,"
             "	fact_check_id) "
             "values(?,?,?,?,?,?,?)", values)
+
+    def object_rd_pg(self, limit, offset, user_id, fact_check_id,
+                     error_level_id, object_name_pattern, script_name_pattern,
+                     fact_check_end_date_from, fact_check_end_date_to,
+                     object_date_from, object_date_to):
+        """Reads a part of records from object table for the pagination
+
+        :param limit: row count constraint
+        :param offset: row count for shifting the results
+        :param user_id: identifier from table user for checking availability
+        :param fact_check_id: identifier from fact_check table
+        :param error_level_id: identifier from error_level table
+        :param object_name_pattern: object name part for like search
+        :param script_name_pattern: script name part for like search
+        :param fact_check_end_date_from: begin date constraint
+        for fact_check_end_date
+        :param fact_check_end_date_to: end date constraint
+        for fact_check_end_date
+        :param object_date_from: begin date constraint for object_date
+        :param object_date_to: end date constraint for object_date
+        :return set of records from object table
+
+        """
+        self._cursor.execute(
+            "select "
+            "	ob.object_id, "
+            "	s.script_name, "
+            "	u.user_name, "
+            "	fc.fact_check_end_date, "
+            "	ob.object_name, "
+            "	ob.object_identifier, "
+            "	ob.object_comment, "
+            "	ob.object_author, "
+            "	ob.object_date, "
+            "	el.error_level_name "
+            "from object as ob "
+            "	inner join fact_check as fc "
+            "		on fc.fact_check_id = ob.fact_check_id "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "	inner join user as u on u.user_id = usl.user_id "
+            "	inner join script as s on s.script_id = usl.script_id "
+            "	inner join error_level as el "
+            "       on el.error_level_id = ob.error_level_id "
+            "where s.script_end_date is null "
+            "	and (?3 is null or ?3 = u.user_id)"
+            "	and (?4 is null or ?4 = ob.fact_check_id)"
+            "	and (?5 is null or ?5 = ob.error_level_id)"
+            "   and (?6 is null or ob.object_name like '%' || ?6 || '%') "
+            "   and (?7 is null or s.script_name like '%' || ?7 || '%') "
+            "   and (?8 is null or date(fc.fact_check_end_date) >= ?8) "
+            "   and (?9 is null or date(fc.fact_check_end_date) <= ?9) "
+            "   and (?10 is null or date(ob.object_date) >= ?10) "
+            "   and (?11 is null or date(ob.object_date) <= ?11) "
+            "limit ?1 offset ?2",
+            (limit, offset, user_id, fact_check_id, error_level_id,
+             object_name_pattern, script_name_pattern, fact_check_end_date_from,
+             fact_check_end_date_to, object_date_from, object_date_to))
+        return self._cursor.fetchall()
+
+    def object_cnt(self, user_id, fact_check_id, error_level_id,
+                   object_name_pattern, script_name_pattern,
+                   fact_check_end_date_from, fact_check_end_date_to,
+                   object_date_from, object_date_to):
+        """Counts a part of records from object table for the pagination
+
+        :param user_id: identifier from table user for checking availability
+        :param fact_check_id: identifier from fact_check table
+        :param error_level_id: identifier from error_level table
+        :param object_name_pattern: object name part for like search
+        :param script_name_pattern: script name part for like search
+        :param fact_check_end_date_from: begin date constraint
+        for fact_check_end_date
+        :param fact_check_end_date_to: end date constraint
+        for fact_check_end_date
+        :param object_date_from: begin date constraint for object_date
+        :param object_date_to: end date constraint for object_date
+        :return count of records from object table
+
+        """
+        self._cursor.execute(
+            "select count(ob.object_id) as cnt "
+            "from object as ob "
+            "	inner join fact_check as fc "
+            "		on fc.fact_check_id = ob.fact_check_id "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "	inner join user as u on u.user_id = usl.user_id "
+            "	inner join script as s on s.script_id = usl.script_id "
+            "	inner join error_level as el "
+            "       on el.error_level_id = ob"
+            ".error_level_id "
+            "where s.script_end_date is null "
+            "	and (?1 is null or ?1 = u.user_id)"
+            "	and (?2 is null or ?2 = ob.fact_check_id)"
+            "	and (?3 is null or ?3 = ob.error_level_id)"
+            "   and (?4 is null or ob.object_name like '%' || ?4 || '%') "
+            "   and (?5 is null or s.script_name like '%' || ?5 || '%') "
+            "   and (?6 is null or date(fc.fact_check_end_date) >= ?6) "
+            "   and (?7 is null or date(fc.fact_check_end_date) <= ?7) "
+            "   and (?8 is null or date(ob.object_date) >= ?8) "
+            "   and (?9 is null or date(ob.object_date) <= ?9) ",
+            (user_id, fact_check_id, error_level_id, object_name_pattern,
+             script_name_pattern, fact_check_end_date_from,
+             fact_check_end_date_to, object_date_from, object_date_to))
+        return self._cursor.fetchone()[0]
