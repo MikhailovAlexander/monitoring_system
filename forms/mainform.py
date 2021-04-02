@@ -21,9 +21,8 @@ class MainForm(tk.Tk):
         self._logger = logging.getLogger(__name__)
         self._logger.info('Creating MainForm')
         super().__init__()
-        self.sv_current_check_name = tk.StringVar(value="NO SCRIPT")
-        self.iv_current_check_id = tk.IntVar()
         self.attributes('-alpha', 0.0)  # make window transparent
+
         self._driver = driver
         self._user_id = None
         self._user_dict = self._read_users()
@@ -34,11 +33,15 @@ class MainForm(tk.Tk):
             return
         self.after(0, self.attributes, "-alpha", 1.0)  # back to normal
         self.attributes("-topmost", True)
+
         self._scr_plug = ScriptPlugin(log_config,
                                       self._config["script_plugin_conf"],
                                       driver)
         self._scr_queue = ScriptQueue(driver, log_config, self._scr_plug,
                                       queue)
+
+        self.sv_current_check_name = tk.StringVar(value="NO SCRIPT")
+        self.iv_current_check_id = tk.IntVar()
         self._sv_user_name = tk.StringVar()
         self._sv_user_name.trace("w", self._on_upd_sv_user_name)
         self._tb_user = None
@@ -61,8 +64,14 @@ class MainForm(tk.Tk):
         self._iv_all_user_checks.trace("w", self._refresh_tb_check)
         self._iv_all_script_checks = tk.IntVar(value=1)
         self._iv_all_script_checks.trace("w", self._refresh_tb_check)
-        self._iv_status_checks = tk.IntVar()
+        self._iv_status_checks = tk.IntVar(value=-1)
         self._iv_status_checks.trace("w", self._refresh_tb_check)
+        self._sv_check_script_name = tk.StringVar()
+        self._sv_check_script_name.trace("w", self._refresh_tb_check)
+        self._sv_check_user_name = tk.StringVar()
+        self._sv_check_user_name.trace("w", self._refresh_tb_check)
+        self._iv_period_checks = tk.IntVar(value=0)
+        self._iv_period_checks.trace("w", self._on_upd_iv_period_checks)
         self._ed_check_date_from = None
         self._ed_check_date_to = None
         self._tb_check = None
@@ -685,35 +694,30 @@ class MainForm(tk.Tk):
         lbl_script_filter = tk.Label(fr_check_filters,
                                       text="Поиск по названию скрипта")
         lbl_script_filter.pack(fill="x", expand=True)
-        en_check_script_name = tk.Entry(fr_check_filters  # TODO: add variable,
-                                # textvariable=self._sv_script_name
-                                 )
+        en_check_script_name = tk.Entry(fr_check_filters,
+                                        textvariable=self._sv_check_script_name)
         en_check_script_name.pack(fill="x", expand=True)
         lbl_user_filter = tk.Label(fr_check_filters,
                                    text="Поиск по пользователю")
         lbl_user_filter.pack(fill="x", expand=True)
-        en_check_user_name = tk.Entry(fr_check_filters  # TODO: add variable,
-                                # textvariable=self._sv_script_name
-                                 )
+        en_check_user_name = tk.Entry(fr_check_filters,
+                                      textvariable=self._sv_check_user_name)
         en_check_user_name.pack(fill="x", expand=True)
         cb_period_checks = tk.Checkbutton(fr_check_filters,
-                                          # TODO: add variable,
                                           text="Проведенные за период",
-                                          # variable=self._iv_period_scripts,
+                                          variable=self._iv_period_checks,
                                           padx=15, pady=10)
         cb_period_checks.pack(fill="x", expand=True)
         self._ed_check_date_from = DateEntry(fr_check_filters,
                                              self._log_config,
-                                             "с  "  #, TODO: add command
-                                             # command=self._refresh_tb_script
-                                             )
+                                             "с  ",
+                                             command=self._refresh_tb_check)
         self._ed_check_date_from.pack(fill="x", expand=True)
         self._ed_check_date_from.disable()
         self._ed_check_date_to = DateEntry(fr_check_filters,
                                            self._log_config,
-                                           "по "  #, TODO: add command
-                                           # command=self._refresh_tb_script
-                                           )
+                                           "по ",
+                                           command=self._refresh_tb_check)
         self._ed_check_date_to.pack(fill="x", expand=True)
         self._ed_check_date_to.disable()
         fr_check_btns = tk.Frame(fr_check_controls)
@@ -765,24 +769,28 @@ class MainForm(tk.Tk):
         status_id = self._iv_status_checks.get()
         status_id = None if status_id == -1 else status_id
         self._logger.debug(f"status_id: {status_id}")
-        # TODO: add params
-        # name_pattern = None
-        # value = self._sv_script_name.get()
-        # if value and value.strip():
-        #     name_pattern = value
-        # date_from = self._ed_script_date_from.get()
-        # date_to = self._ed_script_date_to.get()
+        script_name_pattern = None
+        value = self._sv_check_script_name.get()
+        if value and value.strip():
+            script_name_pattern = value
+        user_name_pattern = None
+        value = self._sv_check_user_name.get()
+        if value and value.strip():
+            user_name_pattern = value
+        date_from = self._ed_check_date_from.get()
+        date_to = self._ed_check_date_to.get()
         check_rec = None
         try:
             check_rec = self._driver.fact_check_rd_pg(limit, offset,
-                                                      # TODO: add params
                                                       status_id=status_id,
                                                       user_id=user_id,
                                                       script_id=script_id,
-                                                      user_name_pattern=None,
-                                                      script_name_pattern=None,
-                                                      date_from=None,
-                                                      date_to=None)
+                                                      user_name_pattern=
+                                                      user_name_pattern,
+                                                      script_name_pattern=
+                                                      script_name_pattern,
+                                                      date_from=date_from,
+                                                      date_to=date_to)
         except Exception as ex:
             self._logger.exception(ex)
             messagebox.showerror("Data base error",
@@ -800,16 +808,25 @@ class MainForm(tk.Tk):
             else self._iv_showed_script_id.get()
         status_id = self._iv_status_checks.get()
         status_id = None if status_id == -1 else status_id
-        # TODO: add params
+        script_name_pattern = None
+        value = self._sv_check_script_name.get()
+        if value and value.strip():
+            script_name_pattern = value
+        user_name_pattern = None
+        value = self._sv_check_user_name.get()
+        if value and value.strip():
+            user_name_pattern = value
+        date_from = self._ed_check_date_from.get()
+        date_to = self._ed_check_date_to.get()
         page_cnt = self._get_page_cnt(self._driver.fact_check_cnt,
                                       self._config["tb_user_row_limit"],
                                       status_id=status_id,
                                       user_id=user_id,
                                       script_id=script_id,
-                                      user_name_pattern=None,
-                                      script_name_pattern=None,
-                                      date_from=None,
-                                      date_to=None)
+                                      user_name_pattern=user_name_pattern,
+                                      script_name_pattern=script_name_pattern,
+                                      date_from=date_from,
+                                      date_to=date_to)
         page_cnt = max(1, page_cnt)
         if cur_page_cnt != page_cnt:
             self._logger.debug(f"cur_page:{cur_page}; page_cnt:{page_cnt}")
@@ -821,3 +838,12 @@ class MainForm(tk.Tk):
         self._iv_all_user_checks.set(1)
         self._iv_all_script_checks.set(0)
         self._iv_status_checks.set(None)
+
+    def _on_upd_iv_period_checks(self, *args):
+        if self._iv_period_checks.get():
+            self._ed_check_date_from.enable()
+            self._ed_check_date_to.enable()
+        else:
+            self._ed_check_date_from.disable()
+            self._ed_check_date_to.disable()
+        self._refresh_tb_check()
