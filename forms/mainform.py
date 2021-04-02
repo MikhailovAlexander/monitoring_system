@@ -40,6 +40,7 @@ class MainForm(tk.Tk):
         self._scr_queue = ScriptQueue(driver, log_config, self._scr_plug,
                                       queue)
 
+        self._tab = None
         self.sv_current_check_name = tk.StringVar(value="NO SCRIPT")
         self.iv_current_check_id = tk.IntVar()
         self._sv_user_name = tk.StringVar()
@@ -60,6 +61,8 @@ class MainForm(tk.Tk):
         self._pgn_script = None
 
         self._lbl_check_context = None
+        self._iv_showed_check_id = tk.IntVar()
+        self._iv_showed_check_id.trace("w", self._on_upd_iv_showed_check_id)
         self._iv_all_user_checks = tk.IntVar(value=1)
         self._iv_all_user_checks.trace("w", self._refresh_tb_check)
         self._iv_all_script_checks = tk.IntVar(value=1)
@@ -76,6 +79,8 @@ class MainForm(tk.Tk):
         self._ed_check_date_to = None
         self._tb_check = None
         self._pgn_check = None
+
+        self._lbl_object_context = None
 
         self._create_form()
 
@@ -101,14 +106,14 @@ class MainForm(tk.Tk):
                                  textvariable=self.sv_current_check_name)
         lbl_cur_check.pack(side="right", padx=30)
         self._add_menu_bar()
-        nb = ttk.Notebook(self)
-        nb.pack(side="bottom", fill="both", expand=True)
+        self._tab = ttk.Notebook(self)
+        self._tab.pack(side="bottom", fill="both", expand=True)
         fr_user_tab = self._get_user_tab()
         fr_script_tab = self._get_script_tab()
         fr_check_tab = self._get_check_tab()
-        nb.add(fr_user_tab, text="Пользователи")
-        nb.add(fr_script_tab, text="Скрипты")
-        nb.add(fr_check_tab, text="Проверки")
+        self._tab.add(fr_user_tab, text="Пользователи")
+        self._tab.add(fr_script_tab, text="Скрипты")
+        self._tab.add(fr_check_tab, text="Проверки")
 
     def _add_menu_bar(self):
         self._logger.info("Adding menu bar")
@@ -490,6 +495,7 @@ class MainForm(tk.Tk):
             return
         self._iv_showed_script_id.set(script_id)
         self._reset_tb_check_params()
+        self._tab.select(2)
 
     def _on_upd_iv_showed_script_id(self, *args):
         script_id = self._iv_showed_script_id.get()
@@ -625,6 +631,7 @@ class MainForm(tk.Tk):
             messagebox.showerror("Application error",
                                  "Скрипт для снятия видимости не выбран")
             return
+        link = None
         try:
             link = self._driver.user_script_link_srch(self._user_id, script_id)
         except Exception as ex:
@@ -692,7 +699,7 @@ class MainForm(tk.Tk):
                                              padx=15)
         rb_cl_status_checks.pack(fill="x", expand=True)
         lbl_script_filter = tk.Label(fr_check_filters,
-                                      text="Поиск по названию скрипта")
+                                     text="Поиск по названию скрипта")
         lbl_script_filter.pack(fill="x", expand=True)
         en_check_script_name = tk.Entry(fr_check_filters,
                                         textvariable=self._sv_check_script_name)
@@ -722,15 +729,14 @@ class MainForm(tk.Tk):
         self._ed_check_date_to.disable()
         fr_check_btns = tk.Frame(fr_check_controls)
         fr_check_btns.pack(side="top", fill="both", expand=True)
-        btn_rerun_script = tk.Button(fr_check_btns, text="Запустить повторно",
-                                     # TODO: add command
-                                     # command=self._script_del
-                                     )
-        btn_rerun_script.pack(side="bottom", fill="x", pady=2)
+        btn_cancel_check = tk.Button(fr_check_btns, text="Отменить проверку",
+                                     command=self._check_cancel)
+        btn_cancel_check.pack(side="bottom", fill="x", pady=2)
+        btn_rerun_check = tk.Button(fr_check_btns, text="Запустить повторно",
+                                    command=self._rerun_check)
+        btn_rerun_check.pack(side="bottom", fill="x", pady=2)
         btn_show_obj = tk.Button(fr_check_btns, text="Просмотреть объекты",
-                                 # TODO: add command
-                                 #  command=self._script_upd
-                                 )
+                                 command=self._show_obj)
         btn_show_obj.pack(side="bottom", fill="x", pady=2)
         page_cnt = self._get_page_cnt(self._driver.fact_check_cnt,
                                       self._config["tb_check_row_limit"],
@@ -837,7 +843,7 @@ class MainForm(tk.Tk):
     def _reset_tb_check_params(self):
         self._iv_all_user_checks.set(1)
         self._iv_all_script_checks.set(0)
-        self._iv_status_checks.set(None)
+        self._iv_status_checks.set(-1)
 
     def _on_upd_iv_period_checks(self, *args):
         if self._iv_period_checks.get():
@@ -847,3 +853,104 @@ class MainForm(tk.Tk):
             self._ed_check_date_from.disable()
             self._ed_check_date_to.disable()
         self._refresh_tb_check()
+
+    def _check_cancel(self):
+        queue = 1
+        cancel = 4
+        self._logger.info("Check cancelling is running")
+        check_id = self._tb_check.get_selected_id
+        if not check_id:
+            messagebox.showerror("Application error",
+                                 "Проверка для отмены не выбрана")
+            return
+        if check_id == self.iv_current_check_id.get():
+            messagebox.showerror("Application error",
+                                 "Проверка выполняется, отмена невозможна")
+            return
+        try:
+            status = self._driver.fact_check_rd_status(check_id)
+            if not status or status[0] != queue:
+                messagebox.showerror("Application error",
+                                     "Отмена возможна только "
+                                     "для проверки в очереди")
+                return
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error", "Ошибка проверки статуса")
+            return
+        try:
+            self._driver.fact_check_upd(check_id, datetime.datetime.now(),
+                                        fact_check_obj_count=None,
+                                        fact_check_status_id=cancel)
+            self._refresh_tb_check()
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка обновления статуса проверки: {ex}")
+
+    def _rerun_check(self):
+        self._logger.info("Check rerun is running")
+        check_id = self._tb_check.get_selected_id
+        if not check_id:
+            messagebox.showerror("Application error",
+                                 "Проверка не выбрана")
+            return
+        script_id = None
+        try:
+            script_id = self._driver.fact_check_rd_script(check_id)[0]
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения скрипта из бд: {ex}")
+        if not script_id:
+            messagebox.showerror("Application error", "Скрипт не найден")
+            return
+        link = None
+        try:
+            link = self._driver.user_script_link_srch(self._user_id, script_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script saving error",
+                                 f"Ошибка проверки видимости скрипта: {ex}")
+        if not link:
+            messagebox.showerror("Application error",
+                                 "Скрипт не доступен текущему пользователю")
+            return
+        try:
+            self._scr_queue.put(script_id, link[0])
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Script queue error",
+                                 f"Ошибка добавления скрипта в очередь: {ex}")
+
+    def _show_obj(self):
+        check_id = self._tb_check.get_selected_id
+        if not check_id:
+            messagebox.showerror("Application error",
+                                 "Проверка не выбрана")
+            return
+        self._iv_showed_check_id.set(check_id)
+        # TODO: uncomm after obj table adding
+        # self._reset_tb_obj_params()
+        # self._tab.select(3)
+
+    def _on_upd_iv_showed_check_id(self, *args):
+        check_id = self._iv_showed_check_id.get()
+        if not check_id:
+            return
+        script_rec = None
+        try:
+            check_rec = self._driver.fact_check_rd(check_id)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка поиска проверки: {ex}")
+        # TODO: uncomm after _lbl_object_context adding
+        # if check_rec:
+        #     self._lbl_object_context.config(text="Выбранная проверка: "
+        #                                          f"{check_rec[0]} "
+        #                                          f"от {check_rec[3]}")
+        # else:
+        #     self._lbl_object_context.config(text="Выбранная проверка: "
+        #                                          "не задана")
+

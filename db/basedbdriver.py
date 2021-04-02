@@ -181,6 +181,15 @@ class BaseDbDriver(metaclass=ABCMeta):
         """
         pass
 
+    def fact_check_rd(self, fact_check_id):
+        """Reads a record from fact_check table
+
+        :param fact_check_id: record identifier from fact_check table
+        :return record from fact_check table
+
+        """
+        pass
+
     def fact_check_rd_pg(self, limit, offset, status_id, user_id, script_id,
                          user_name_pattern, script_name_pattern, date_from,
                          date_to):
@@ -225,6 +234,14 @@ class BaseDbDriver(metaclass=ABCMeta):
         """
 
         :return fact_check_status_id value by record from fact_check table
+
+        """
+        pass
+
+    def fact_check_rd_script(self, fact_check_id):
+        """
+
+        :return script_id value by record from fact_check table
 
         """
         pass

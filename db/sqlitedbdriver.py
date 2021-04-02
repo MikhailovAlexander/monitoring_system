@@ -349,6 +349,37 @@ class SqliteDbDriver(BaseDbDriver):
              script_name_pattern, date_from, date_to))
         return self._cursor.fetchone()[0]
 
+    def fact_check_rd(self, fact_check_id):
+        """Reads a record from fact_check table
+
+        :param fact_check_id: record identifier from fact_check table
+        :return record from fact_check table
+
+        """
+        self._cursor.execute(
+            "select "
+            "	s.script_name, "
+            "	u.user_name, "
+            "	ot.object_type_name, "
+            "	fc.fact_check_que_date, "
+            "	fc.fact_check_end_date, "
+            "	fcs.fact_check_status_name, "
+            "	fc.fact_check_obj_count, "
+            "	(select count(ob.object_id)  "
+            "	from object as ob  "
+            "	where ob.fact_check_id = fc.fact_check_id) as odj_cnt "
+            "from fact_check as fc "
+            "	inner join fact_check_status as fcs "
+            "		on fcs.fact_check_status_id = fc.fact_check_status_id "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "	inner join user as u on u.user_id = usl.user_id "
+            "	inner join script as s on s.script_id = usl.script_id "
+            "	inner join object_type as ot "
+            "       on ot.object_type_id = s.object_type_id "
+            "where fc.fact_check_id = ? ", (fact_check_id,))
+        return self._cursor.fetchone()
+
     def fact_check_rd_pg(self, limit, offset, status_id, user_id, script_id,
                          user_name_pattern, script_name_pattern, date_from,
                          date_to):
@@ -450,6 +481,21 @@ class SqliteDbDriver(BaseDbDriver):
         self._cursor.execute(
             "select fc.fact_check_status_id "
             "from fact_check as fc "
+            "where fact_check_id = ?",
+            (fact_check_id,))
+        return self._cursor.fetchone()
+
+    def fact_check_rd_script(self, fact_check_id):
+        """
+
+        :return script_id value by record from fact_check table
+
+        """
+        self._cursor.execute(
+            "select usl.script_id "
+            "from fact_check as fc "
+            "    inner join user_script_link as usl "
+            "        on usl.user_script_link_id = fc.user_script_link_id "
             "where fact_check_id = ?",
             (fact_check_id,))
         return self._cursor.fetchone()
