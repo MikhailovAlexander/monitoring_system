@@ -10,6 +10,25 @@ from forms.pagination import Pagination
 from core.scriptplugin import ScriptPlugin
 from core.scriptqueue import ScriptQueue
 
+LICENSE = ("Copyright 2021 Alexander Mikhailov The MIT License"
+           "\n\nPermission is hereby granted, free of charge, to any person "
+           "obtaining a copy of this software and associated documentation "
+           "files (the \"Software\"), to deal in the Software without "
+           "restriction, including without limitation the rights to use, copy, "
+           "modify, merge, publish, distribute, sublicense, and/or sell copies "
+           "of the Software, and to permit persons to whom the Software is "
+           "furnished to do so, subject to the following conditions:"
+           "\n\nThe above copyright notice and this permission notice shall "
+           "be included in all copies or substantial portions of the Software."
+           "\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY "
+           "KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE "
+           "WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE "
+           "AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT "
+           "HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, "
+           "WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, "
+           "OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER "
+           "DEALINGS IN THE SOFTWARE.")
+
 
 class MainForm(tk.Tk):
     """Main widget for the program"""
@@ -139,10 +158,13 @@ class MainForm(tk.Tk):
         self._logger.info("Adding menu bar")
         menu = tk.Menu(self)
         new_item = tk.Menu(menu)
-        new_item.add_command(label="Новый")
+        new_item.add_command(label="О программе", command=self._about_program)
+        new_item.add_command(label="Лицензия", command=self._about_license)
+        new_item.add_command(label="Поиск новых скриптов",
+                             command=self._script_srch)
         new_item.add_separator()
         new_item.add_command(label="Выход", command=self._close)
-        menu.add_cascade(label="Файл", menu=new_item)
+        menu.add_cascade(label="Главная", menu=new_item)
         item = tk.Menu(menu)
         menu.add_cascade(label="Очередь проверок", menu=item)
         item.add_command(label="Очистить очередь", command=self._queue_clean)
@@ -151,6 +173,21 @@ class MainForm(tk.Tk):
         item.add_command(label="Очистить очередь и заполнить из бд",
                          command=self._queue_refresh_from_db)
         self.config(menu=menu)
+
+    @staticmethod
+    def _about_program():
+        messagebox.showinfo("О программе",
+                            "Система мониторинга предназначена для проведения "
+                            "различых проверок информационных объектов и "
+                            "сохранения результатов проверок в базе данных."
+                            "\n\nРазработана в рамках выполнения курсовой "
+                            "работы по специальности \"Программная инженерия\""
+                            "\nCopyright 2021 Alexander Mikhailov "
+                            "The MIT License")
+
+    @staticmethod
+    def _about_license():
+        messagebox.showinfo("Лицензия", LICENSE)
 
     def _close(self):
         self.destroy()
