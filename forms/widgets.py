@@ -49,7 +49,7 @@ class DateEntry(tk.Frame):
             value = datetime.datetime.strptime(self._entry.get(),
                                                self._date_pattern)
         except Exception as ex:
-            self._logger.warning(f"Date convert error: {self._entry.get()}")
+            self._logger.debug(f"Date convert error: {self._entry.get()}")
         return value
 
     def enable(self):

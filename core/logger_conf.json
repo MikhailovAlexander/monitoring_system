@@ -25,7 +25,7 @@
     "loggers": {
         "" : {
             "handlers": ["default"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": true
         }
     }

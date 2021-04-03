@@ -949,9 +949,8 @@ class MainForm(tk.Tk):
                                  "Проверка не выбрана")
             return
         self._iv_showed_check_id.set(check_id)
-        # TODO: uncomm after obj table adding
-        # self._reset_tb_obj_params()
-        # self._tab.select(3)
+        self._reset_tb_obj_params()
+        self._tab.select(3)
 
     def _on_upd_iv_showed_check_id(self, *args):
         check_id = self._iv_showed_check_id.get()
@@ -964,14 +963,13 @@ class MainForm(tk.Tk):
             self._logger.exception(ex)
             messagebox.showerror("Data base error",
                                  f"Ошибка поиска проверки: {ex}")
-        # TODO: uncomm after _lbl_object_context adding
-        # if check_rec:
-        #     self._lbl_object_context.config(text="Выбранная проверка: "
-        #                                          f"{check_rec[0]} "
-        #                                          f"от {check_rec[3]}")
-        # else:
-        #     self._lbl_object_context.config(text="Выбранная проверка: "
-        #                                          "не задана")
+        if check_rec:
+            self._lbl_object_context.config(text="Выбранная проверка: "
+                                                 f"\n{check_rec[0]} "
+                                                 f"от {check_rec[3]}")
+        else:
+            self._lbl_object_context.config(text="Выбранная проверка: "
+                                                 "не задана")
 
     def _get_object_tab(self):
         self._logger.info('Creating object tab')
@@ -1088,14 +1086,107 @@ class MainForm(tk.Tk):
         self._load_obj_page(1)
         return fr_obj_tab
 
-    def _refresh_tb_obj(self):
-        pass
+    def _refresh_tb_obj(self, *args):
+        self._logger.debug("Refreshing tb_obj is running")
+        cur_page = self._pgn_obj.current_page
+        cur_page_cnt = self._pgn_obj.total_pages
+        user_id = None if self._iv_all_user_obj.get() else self._user_id
+        check_id = None if self._iv_all_check_obj.get() \
+            else self._iv_showed_check_id.get()
+        error_level_id = self._iv_status_obj.get()
+        error_level_id = None if error_level_id == -1 else error_level_id
+        obj_name_pattern = None
+        value = self._sv_obj_name.get()
+        if value and value.strip():
+            obj_name_pattern = value
+        script_name_pattern = None
+        value = self._sv_obj_script_name.get()
+        if value and value.strip():
+            script_name_pattern = value
+        fact_check_end_date_from = self._ed_check_obj_date_from.get()
+        fact_check_end_date_to = self._ed_check_obj_date_to.get()
+        object_date_from = self._ed_obj_date_from.get()
+        object_date_to = self._ed_obj_date_to.get()
+        page_cnt = self._get_page_cnt(self._driver.object_cnt,
+                                      self._config["tb_object_row_limit"],
+                                      user_id=user_id,
+                                      fact_check_id=check_id,
+                                      error_level_id=error_level_id,
+                                      object_name_pattern=obj_name_pattern,
+                                      script_name_pattern=script_name_pattern,
+                                      fact_check_end_date_from=
+                                      fact_check_end_date_from,
+                                      fact_check_end_date_to=
+                                      fact_check_end_date_to,
+                                      object_date_from=object_date_from,
+                                      object_date_to=object_date_to)
+        page_cnt = max(1, page_cnt)
+        if cur_page_cnt != page_cnt:
+            cur_page = min(cur_page, page_cnt)
+            self._pgn_obj.update(page_cnt, cur_page)
+        self._load_obj_page(cur_page)
 
-    def _on_upd_iv_period_checks_obj(self):
-        pass
+    def _on_upd_iv_period_checks_obj(self, *args):
+        if self._iv_period_checks_obj.get():
+            self._ed_check_obj_date_from.enable()
+            self._ed_check_obj_date_to.enable()
+        else:
+            self._ed_check_obj_date_from.disable()
+            self._ed_check_obj_date_to.disable()
+        self._refresh_tb_obj()
 
-    def _on_upd_iv_period_obj(self):
-        pass
+    def _on_upd_iv_period_obj(self, *args):
+        if self._iv_period_obj.get():
+            self._ed_obj_date_from.enable()
+            self._ed_obj_date_to.enable()
+        else:
+            self._ed_obj_date_from.disable()
+            self._ed_obj_date_to.disable()
+        self._refresh_tb_obj()
 
-    def _load_obj_page(self, num_page):
-        pass
+    def _load_obj_page(self, page_num):
+        limit = self._config["tb_object_row_limit"]
+        offset = (page_num - 1) * limit
+        user_id = None if self._iv_all_user_obj.get() else self._user_id
+        check_id = None if self._iv_all_check_obj.get()\
+            else self._iv_showed_check_id.get()
+        error_level_id = self._iv_status_obj.get()
+        error_level_id = None if error_level_id == -1 else error_level_id
+        obj_name_pattern = None
+        value = self._sv_obj_name.get()
+        if value and value.strip():
+            obj_name_pattern = value
+        script_name_pattern = None
+        value = self._sv_obj_script_name.get()
+        if value and value.strip():
+            script_name_pattern = value
+        fact_check_end_date_from = self._ed_check_obj_date_from.get()
+        fact_check_end_date_to = self._ed_check_obj_date_to.get()
+        object_date_from = self._ed_obj_date_from.get()
+        object_date_to = self._ed_obj_date_to.get()
+        obj_rec = None
+        try:
+            obj_rec = self._driver.object_rd_pg(limit, offset, user_id,
+                                                check_id, error_level_id,
+                                                obj_name_pattern,
+                                                script_name_pattern,
+                                                fact_check_end_date_from,
+                                                fact_check_end_date_to,
+                                                object_date_from,
+                                                object_date_to)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка чтения объектов из БД: {ex}")
+        self._tb_obj.clear()
+        if obj_rec:
+            self._tb_obj.insert(obj_rec)
+
+    def _reset_tb_obj_params(self):
+        self._iv_all_user_obj.set(1)
+        self._iv_all_check_obj.set(0)
+        self._iv_status_obj.set(-1)
+        self._iv_period_checks_obj.set(0)
+        self._iv_period_obj.set(0)
+        self._sv_obj_name.set("")
+        self._sv_obj_script_name.set("")
