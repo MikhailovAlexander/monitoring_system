@@ -219,25 +219,30 @@ class EntryForm(tk.Toplevel):
 
 
 class Table(tk.Frame):
-    def __init__(self, parent=None, headings=tuple(), rows=tuple()):
-        super().__init__(parent)
+    def __init__(self, root, headings=tuple(), rows=tuple()):
+        super().__init__(root)
         self._selectItem = None
-
         self._table = ttk.Treeview(self, show="headings", selectmode="browse")
         self._table["columns"] = headings
         self._table["displaycolumns"] = headings
 
         for head in headings:
-            self._table.heading(head, text=head, anchor=tk.CENTER)
-            self._table.column(head, anchor=tk.CENTER)
+            self._table.heading(head, text=head, anchor="center")
+            self._table.column(head, anchor="center")
 
         for row in rows:
-            self._table.insert('', tk.END, values=tuple(row))
+            self._table.insert('', "end", values=tuple(row))
 
-        scroll = tk.Scrollbar(self, command=self._table.yview)
-        self._table.configure(yscrollcommand=scroll.set)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        self._table.pack(expand=tk.YES, fill=tk.BOTH, anchor="nw")
+        self._table.column(headings[0], minwidth=0, width=0, stretch="no")
+        scroll_vertical = tk.Scrollbar(self, orient="vertical",
+                                       command=self._table.yview)
+        scroll_vertical.pack(side="right", fill="y")
+        scroll_horizontal = tk.Scrollbar(self, orient="horizontal",
+                                         command=self._table.xview)
+        scroll_horizontal.pack(side="bottom", fill="x")
+        self._table.configure(yscrollcommand=scroll_vertical.set,
+                              xscrollcommand=scroll_horizontal.set)
+        self._table.pack(expand="yes", fill="both", anchor="nw")
 
     @property
     def get_selected_id(self):
