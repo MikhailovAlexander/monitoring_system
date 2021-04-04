@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev object tab was added">
+    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev menu bar was updated">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/basedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/sqlitedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -284,7 +286,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617461098874</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="#dev menu bar was updated">
+      <created>1617470549991</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1617470549991</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -341,6 +350,7 @@
     <MESSAGE value="#dev check tab was updated" />
     <MESSAGE value="#dev object tab was added" />
     <MESSAGE value="#dev horizontal scroll for table added" />
-    <option name="LAST_COMMIT_MESSAGE" value="#dev horizontal scroll for table added" />
+    <MESSAGE value="#dev menu bar was updated" />
+    <option name="LAST_COMMIT_MESSAGE" value="#dev menu bar was updated" />
   </component>
 </project>

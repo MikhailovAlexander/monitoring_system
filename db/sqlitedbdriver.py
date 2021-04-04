@@ -7,6 +7,10 @@ from db.basedbdriver import BaseDbDriver
 
 
 class SqliteDbDriver(BaseDbDriver):
+    """A class for enabling the program to interact
+    with the sqlite database
+
+    """
     def __init__(self, log_config, db_config):
         logging.config.dictConfig(log_config)
         self._logger = logging.getLogger(__name__)
@@ -17,15 +21,26 @@ class SqliteDbDriver(BaseDbDriver):
         self._cursor = None
 
     def get_connection(self):
+        """Opens a database connection and creates a cursor object
+
+        :return bool value: True if the cursor exists
+
+        """
         self._conn = sqlite3.connect(self._db_file_path,
                                      isolation_level=self._iso_level)
         self._cursor = self._conn.cursor()
         return self._cursor is not None
 
     def is_db_exist(self):
+        """Checks database existing
+
+        :return bool value
+
+        """
         return os.path.exists(self._db_file_path)
 
     def init_db(self):
+        """Creates a database and inserts the initial data"""
         if not os.path.exists(self._db_file_path):
             if os.path.exists(self._db_script_path):
                 with open(self._db_script_path, 'r',
@@ -34,15 +49,23 @@ class SqliteDbDriver(BaseDbDriver):
                 try:
                     if self.get_connection():
                         self._cursor.executescript(script_text)
-                except sqlite3.Error as e:
-                    print('Ошибка БД: ' + str(e))  # TODO: throw exception
+                except sqlite3.Error as ex:
+                    self._logger.exception(ex)
+                    raise RuntimeError("Ошибка выполнения "
+                                       f"скрипта инициализации: {ex}")
             else:
-                print('Не найден скрипт инициализации БД')  # TODO: throw exception
+                raise RuntimeError("Не найден скрипт инициализации: "
+                                   f"{self._db_script_path}")
         else:
-            print('БД уже существует')  # TODO: throw exception
+            raise RuntimeError("Ошибка инициализации: БД уже существует"
+                               f"{self._db_file_path}")
 
     def chk_conn(self):
-        """Проверка соединения с БД"""
+        """Checks the database connection
+
+        :return bool value
+
+        """
         if self._conn:
             try:
                 self._conn.cursor()
@@ -53,13 +76,12 @@ class SqliteDbDriver(BaseDbDriver):
             return False
 
     def close_cursor(self):
-        """Метод для закрытия курсора, если он существует"""
+        """Closes the database cursor if it exists"""
         if self._cursor:
             self._cursor.close()
 
     def close_connection(self):
-        """Метод для закрытия соединения. Закрывает кусор и соединение,
-           если они существуют"""
+        """Closes the database cursor and the connection if they exist"""
         self.close_cursor()
         if self._conn:
             self._conn.close()
@@ -69,69 +91,106 @@ class SqliteDbDriver(BaseDbDriver):
         return int(self._cursor.fetchone()[0])
 
     def begin_transaction(self):
-        """Starts db transaction"""
+        """Starts a database transaction"""
         self._cursor.execute("begin transaction;")
 
     def commit(self):
-        """Commits db transaction"""
+        """Commits a database transaction"""
         self._cursor.execute("commit;")
 
     def rollback(self):
-        """Rollbacks db transaction"""
+        """Rollbacks a database transaction"""
         self._cursor.execute("rollback;")
 
     def user_ins(self, user_name):
-        """Добавление записи в таблицу user"""
+        """Inserts a new record in the user table
+
+        :param user_name value to insert
+        :return void
+
+        """
         self._cursor.execute("insert into user(user_name) VALUES(?)",
                              (user_name,))
 
     def user_upd(self, user_id, user_name):
-        """Обновление записи в таблице user"""
+        """Updates a record in the user table
+
+        :param user_id record identifier in the user table
+        :param user_name value to update
+        :return void
+
+        """
         self._cursor.execute("update user set user_name = ? where user_id = ?",
                              (user_name, user_id))
 
     def user_dlt(self, user_id):
-        """Удаление записи из таблицы user"""
+        """Deletes a record from the user table
+
+        :param user_id record identifier in the user table
+        :return void
+
+        """
         self._cursor.execute("delete from user where user_id = ?",
                              (user_id,))
 
     def user_rd(self, user_id):
-        """Выбрать запись из таблицы user"""
+        """Reads a record from the user table
+
+        :param user_id record identifier in the user table
+        :return a record from the user table
+
+        """
         self._cursor.execute(
             "select user_id, user_name from user where user_id = ?",
             (user_id,))
         return self._cursor.fetchone()
 
     def user_rda(self):
-        """Выбрать все записи из таблицы user"""
+        """Reads all records from the user table
+
+        :return set of records from the user table
+
+        """
         self._cursor.execute("select user_id, user_name from user")
         return self._cursor.fetchall()
 
     def user_rd_pg(self, pattern, limit, offset):
-        """Reads a part of records from user table for the pagination
+        """Reads a part of records from the user table for the pagination
 
-        :param pattern - user name part for like search
+        :param pattern - user name part for the like search
         :param limit - row count constraint
         :param offset - row count for shifting the results
-        :return set of records from user table
+        :return set of records from the user table
 
         """
         self._cursor.execute(
-            "select user_id, user_name from user "
-            "where ?1 is null or user_name like '%' || ?1 || '%' "
+            "select "
+            "   u.user_id,"
+            "   u.user_name,"
+            "   count(distinct usl.script_id) as script_cnt, "
+            "   count(distinct fc.fact_check_id) as check_cnt "
+            "from user as u"
+            "   left join user_script_link as usl "
+            "       on usl.user_id = u.user_id "
+            "       and usl.user_script_link_end_date is null "
+            "   left join fact_check as fc "
+            "       on fc.user_script_link_id = usl.user_script_link_id "
+            ""
+            "where ?1 is null or u.user_name like '%' || ?1 || '%' "
+            "group by u.user_id, u.user_name "
             "limit ?2 offset ?3",
             (pattern, limit, offset))
         return self._cursor.fetchall()
 
     def user_cnt(self):
         """
-        :return count of records from user table
+        :return count of records from the user table
         """
         return self._table_cnt("user")
 
     def script_rda(self):
         """
-        :return all records from user table
+        :return all records from the script table
         """
         self._cursor.execute("select script_id, script_name, "
                              "script_description, script_author, "
@@ -141,15 +200,15 @@ class SqliteDbDriver(BaseDbDriver):
 
     def script_rd_pg(self, limit, offset, user_id, name_pattern, date_from,
                      date_to):
-        """Reads a part of records from script table for the pagination
+        """Reads a part of records from the script table for the pagination
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
-        :param user_id: identifier from table user for checking availability
+        :param user_id: identifier from the user table for checking availability
         :param name_pattern: script name part for like search
-        :param date_from: begin date constraint fot user_beg_date
-        :param date_to: end date constraint fot user_beg_date
-        :return set of records from script table
+        :param date_from: begin date constraint for user_beg_date
+        :param date_to: end date constraint for user_beg_date
+        :return set of records from the script table
 
         """
         self._cursor.execute(
@@ -180,7 +239,7 @@ class SqliteDbDriver(BaseDbDriver):
 
     def script_ins(self, script_name, script_description, script_author,
                    script_beg_date, script_hash, object_type_id):
-        """Inserts new script in script table"""
+        """Inserts a new script in the script table"""
         self._cursor.execute("insert into script("
                              "	script_name,"
                              "	script_description,"
@@ -194,10 +253,10 @@ class SqliteDbDriver(BaseDbDriver):
                               script_beg_date, script_hash, object_type_id))
 
     def script_rd(self, script_id):
-        """Reads records from script table
+        """Reads record from the script table
 
-        :param script_id - script table record identifier
-        :return record from script table
+        :param script_id identifier from the script table
+        :return record from the script table
 
         """
         self._cursor.execute(
@@ -216,7 +275,7 @@ class SqliteDbDriver(BaseDbDriver):
 
     def script_upd(self, script_id, script_name, script_description,
                    script_author, script_hash, object_type_id):
-        """Updates records from script table"""
+        """Updates record from the script table"""
         self._cursor.execute("update script set"
                              "	script_name = ?2,"
                              "	script_description = ?3,"
@@ -228,11 +287,12 @@ class SqliteDbDriver(BaseDbDriver):
                               script_author, script_hash, object_type_id))
 
     def script_del(self, script_id, script_end_date):
-        """Set end date value for target record in script table
+        """Set end date value for the target record in the script table
 
-        :param script_id - script table record identifier
-        :param script_end_date - script end date value to set
+        :param script_id identifier from the script table
+        :param script_end_date script end date value to set
         :return void
+
         """
         self._cursor.execute("update script set script_end_date = ?2 "
                              "where script_id = ?1",
@@ -240,15 +300,17 @@ class SqliteDbDriver(BaseDbDriver):
 
     def script_all_cnt(self):
         """
-        :return count of records from script table
+        :return count of records from the script table
+
         """
         return self._table_cnt("script")
 
     def script_cnt(self, user_id):
         """
 
-        :param user_id: identifier from table user for checking availability
-        :return count of actual records from script table
+        :param user_id: identifier from the user table
+        :return count of actual records from the script table
+
         """
         self._cursor.execute(
             "select count(s.script_id) as cnt "
@@ -268,9 +330,10 @@ class SqliteDbDriver(BaseDbDriver):
     def user_script_link_srch(self, user_id, script_id):
         """
 
-        :param user_id: user table record identifier for searching link
-        :param script_id - script table record identifier for searching link
-        :return first actual link record for script and user
+        :param user_id: identifier from the user table for link searching
+        :param script_id - identifier from the script table for  link searching
+        :return first actual link record for the script and the user
+
         """
         pass
         self._cursor.execute(
@@ -287,7 +350,7 @@ class SqliteDbDriver(BaseDbDriver):
 
     def user_script_link_ins(self, user_id, script_id,
                              user_script_link_beg_date):
-        """Inserts new link in user_script_link table"""
+        """Inserts a new link into the user_script_link table"""
         self._cursor.execute(
             "insert into user_script_link("
             "	user_id,"
@@ -298,11 +361,13 @@ class SqliteDbDriver(BaseDbDriver):
 
     def user_script_link_del(self, user_script_link_id,
                              user_script_link_end_date):
-        """Set end date value for target record in user_script_link table
+        """Set end date value for the target record in
+        the user_script_link table
 
-        :param user_script_link_id - user_script_link table record identifier
+        :param user_script_link_id identifier from the user_script_link table
         :param user_script_link_end_date - end date value to set
         :return void
+
         """
         self._logger.debug(f"params: {user_script_link_id}; "
                            f"{user_script_link_end_date}")
@@ -314,16 +379,16 @@ class SqliteDbDriver(BaseDbDriver):
 
     def fact_check_cnt(self, status_id, user_id, script_id, user_name_pattern,
                        script_name_pattern, date_from, date_to):
-        """Counts a part of records from fact_check table for the pagination
+        """Counts a part of records from the fact_check table for the pagination
 
-        :param status_id: status identifier from fact_check_status table
-        :param user_id: identifier from table user for checking availability
+        :param status_id: status identifier from the fact_check_status table
+        :param user_id: identifier from the user table for checking availability
         :param script_id - script table record identifier
         :param user_name_pattern: user name part for like search
         :param script_name_pattern: script name part for like search
-        :param date_from: begin date constraint fot user_beg_date
-        :param date_to: end date constraint fot user_beg_date
-        :return count of records from fact_check table
+        :param date_from: begin date constraint for user_beg_date
+        :param date_to: end date constraint for user_beg_date
+        :return count of records from the fact_check table
 
         """
         self._cursor.execute(
@@ -350,10 +415,10 @@ class SqliteDbDriver(BaseDbDriver):
         return self._cursor.fetchone()[0]
 
     def fact_check_rd(self, fact_check_id):
-        """Reads a record from fact_check table
+        """Reads a record from the fact_check table
 
-        :param fact_check_id: record identifier from fact_check table
-        :return record from fact_check table
+        :param fact_check_id identifier from the fact_check table
+        :return record from the fact_check table
 
         """
         self._cursor.execute(
@@ -383,18 +448,18 @@ class SqliteDbDriver(BaseDbDriver):
     def fact_check_rd_pg(self, limit, offset, status_id, user_id, script_id,
                          user_name_pattern, script_name_pattern, date_from,
                          date_to):
-        """Reads a part of records from fact_check table for the pagination
+        """Reads a part of records from the fact_check table for the pagination
 
         :param limit - row count constraint
         :param offset - row count for shifting the results
-        :param status_id: status identifier from fact_check_status table
-        :param user_id: identifier from table user for checking availability
+        :param status_id: status identifier from the fact_check_status table
+        :param user_id: identifier from the table user for checking availability
         :param script_id - script table record identifier
         :param user_name_pattern: user name part for like search
         :param script_name_pattern: script name part for like search
-        :param date_from: begin date constraint fot user_beg_date
-        :param date_to: end date constraint fot user_beg_date
-        :return set of records from fact_check table
+        :param date_from: begin date constraint for user_beg_date
+        :param date_to: end date constraint for user_beg_date
+        :return set of records from the fact_check table
 
         """
         self._cursor.execute(
@@ -433,7 +498,11 @@ class SqliteDbDriver(BaseDbDriver):
         return self._cursor.fetchall()
 
     def fact_check_ins(self, fact_check_que_date, user_script_link_id):
-        """Inserts new link in fact_check table"""
+        """Inserts a new link into the fact_check table
+
+        :return inserted row identifier
+
+        """
         self._cursor.execute(
             "insert into fact_check("
             "	fact_check_que_date,"
@@ -462,7 +531,7 @@ class SqliteDbDriver(BaseDbDriver):
 
     def fact_check_upd(self, fact_check_id, fact_check_end_date,
                        fact_check_obj_count, fact_check_status_id):
-        """Updates record from fact_check table"""
+        """Updates a record from the fact_check table"""
         self._cursor.execute(
             "update fact_check set"
             "	fact_check_end_date = ?2,"
@@ -475,7 +544,7 @@ class SqliteDbDriver(BaseDbDriver):
     def fact_check_rd_status(self, fact_check_id):
         """
 
-        :return fact_check_status_id value by record from fact_check table
+        :return fact_check_status_id value by record from the fact_check table
 
         """
         self._cursor.execute(
@@ -488,7 +557,7 @@ class SqliteDbDriver(BaseDbDriver):
     def fact_check_rd_script(self, fact_check_id):
         """
 
-        :return script_id value by record from fact_check table
+        :return script_id value by record from the fact_check table
 
         """
         self._cursor.execute(
@@ -501,7 +570,7 @@ class SqliteDbDriver(BaseDbDriver):
         return self._cursor.fetchone()
 
     def object_ins(self, values):
-        """Inserts set of new records in the object table"""
+        """Inserts a set of new records in the object table"""
         self._cursor.executemany(
             "insert into object("
             "	object_name,"
@@ -517,13 +586,13 @@ class SqliteDbDriver(BaseDbDriver):
                      error_level_id, object_name_pattern, script_name_pattern,
                      fact_check_end_date_from, fact_check_end_date_to,
                      object_date_from, object_date_to):
-        """Reads a part of records from object table for the pagination
+        """Reads a part of records from the object table for the pagination
 
         :param limit: row count constraint
         :param offset: row count for shifting the results
-        :param user_id: identifier from table user for checking availability
-        :param fact_check_id: identifier from fact_check table
-        :param error_level_id: identifier from error_level table
+        :param user_id: identifier from the user table
+        :param fact_check_id: identifier from the fact_check table
+        :param error_level_id: identifier from the error_level table
         :param object_name_pattern: object name part for like search
         :param script_name_pattern: script name part for like search
         :param fact_check_end_date_from: begin date constraint
@@ -532,7 +601,7 @@ class SqliteDbDriver(BaseDbDriver):
         for fact_check_end_date
         :param object_date_from: begin date constraint for object_date
         :param object_date_to: end date constraint for object_date
-        :return set of records from object table
+        :return set of records from the object table
 
         """
         self._cursor.execute(
@@ -576,11 +645,11 @@ class SqliteDbDriver(BaseDbDriver):
                    object_name_pattern, script_name_pattern,
                    fact_check_end_date_from, fact_check_end_date_to,
                    object_date_from, object_date_to):
-        """Counts a part of records from object table for the pagination
+        """Counts a part of records from the object table for the pagination
 
-        :param user_id: identifier from table user for checking availability
-        :param fact_check_id: identifier from fact_check table
-        :param error_level_id: identifier from error_level table
+        :param user_id: identifier from the user table
+        :param fact_check_id: identifier from the fact_check table
+        :param error_level_id: identifier from the error_level table
         :param object_name_pattern: object name part for like search
         :param script_name_pattern: script name part for like search
         :param fact_check_end_date_from: begin date constraint
@@ -589,7 +658,7 @@ class SqliteDbDriver(BaseDbDriver):
         for fact_check_end_date
         :param object_date_from: begin date constraint for object_date
         :param object_date_to: end date constraint for object_date
-        :return count of records from object table
+        :return count of records from the object table
 
         """
         self._cursor.execute(

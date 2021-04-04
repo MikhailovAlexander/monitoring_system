@@ -13,7 +13,7 @@ APP_CONF_FILE_PATH = './core/app_conf.json'
 
 
 def load_json(json_file_path):
-    """Read data from json-file"""
+    """Reads data from a json-file"""
     with open(json_file_path, 'r') as json_file:
         return json.load(json_file)
 
@@ -29,8 +29,8 @@ def get_logger(log_conf):
     return logging.getLogger(__name__)
 
 
-def queue_handle(_tk_queue, _queue, _logger, _db_mod_name, _db_cls_name, _base_db_driver,
-                 _log_config, _db_config):
+def queue_handle(_tk_queue, _queue, _logger, _db_mod_name, _db_cls_name,
+                 _base_db_driver, _log_config, _db_config):
     """Script queue handle for running scripts in separated thread"""
     logger.debug("queue_handle is running")
     queue_driver = DynamicImport.get_object(_logger, _db_mod_name, _db_cls_name,
@@ -45,7 +45,7 @@ def queue_handle(_tk_queue, _queue, _logger, _db_mod_name, _db_cls_name, _base_d
         sv_check_name = root_vars[0]
         iv_check_id = root_vars[1]
         sv_check_name.set("Текущая проверка: отсутствует")
-        iv_check_id.set(None)
+        iv_check_id.set(-1)
         while True:
             item = _queue.get()
             sv_check_name.set(f"Текущая проверка: скрипт {item.script_name}")
@@ -54,7 +54,7 @@ def queue_handle(_tk_queue, _queue, _logger, _db_mod_name, _db_cls_name, _base_d
             _queue.task_done()
             if _queue.empty():
                 sv_check_name.set("Текущая проверка: отсутствует")
-                iv_check_id.set(None)
+                iv_check_id.set(-1)
     finally:
         queue_driver.close_connection()
 

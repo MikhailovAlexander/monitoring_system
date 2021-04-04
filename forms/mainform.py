@@ -265,7 +265,11 @@ class MainForm(tk.Tk):
                                     pagination_style=self._config[
                                         "pagination_style"])
         self._pgn_user.pack(side="bottom", fill="both", expand=True)
-        self._tb_user = Table(fr_user_tab, headings=('id', 'Имя'))
+        self._tb_user = Table(fr_user_tab, headings=("id", "Имя",
+                                                     "Количество доступных "
+                                                     "скриптов",
+                                                     "Количество проведенных "
+                                                     "проверок"))
         self._tb_user.pack(side="right", fill="both", expand=True)
         self._load_user_page(1)
         return fr_user_tab
