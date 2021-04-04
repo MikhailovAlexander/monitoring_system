@@ -6,7 +6,7 @@
       <change beforePath="$PROJECT_DIR$/db/basedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db/sqlitedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/forms/widgets.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/widgets.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

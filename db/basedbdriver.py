@@ -377,3 +377,13 @@ class BaseDbDriver(metaclass=ABCMeta):
 
         """
         pass
+
+    def user_rep(self, date_from, date_to):
+        """Query for the user report
+
+        :param date_from: begin date for the report period
+        :param date_to: end date for the report period
+        :return aggregated data about users for the period
+
+        """
+        pass

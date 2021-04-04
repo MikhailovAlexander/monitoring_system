@@ -687,3 +687,63 @@ class SqliteDbDriver(BaseDbDriver):
              script_name_pattern, fact_check_end_date_from,
              fact_check_end_date_to, object_date_from, object_date_to))
         return self._cursor.fetchone()[0]
+
+    def user_rep(self, date_from, date_to):
+        """Query for the user report
+
+        :param date_from: begin date for the report period
+        :param date_to: end date for the report period
+        :return aggregated data about users for the period
+
+        """
+        self._cursor.execute(
+            "select "
+            "	u.user_id, "
+            "	u.user_name, "
+            "	count(distinct "
+            "		case "
+            "			when user_script_link_beg_date <= ?2 "
+            "					and (user_script_link_end_date >?2 "
+            "					or user_script_link_end_date is null) "
+            "				then usl.script_id end) as active_script_cnt, "
+            "	count(distinct "
+            "		case "
+            "			when user_script_link_beg_date >= ?1 "
+            "					and user_script_link_beg_date <= ?2 "
+            "				then usl.script_id end) as add_script_cnt, "
+            "	count(distinct "
+            "		case "
+            "			when user_script_link_end_date >= ?1 "
+            "					and user_script_link_end_date <= ?2 "
+            "				then usl.script_id end) as del_script_cnt, "
+            "	count(distinct "
+            "		case "
+            "			when fact_check_que_date >= ?1 "
+            "					and fact_check_que_date <= ?2 "
+            "				then fc.fact_check_id end) as add_check_cnt, "
+            "	count(distinct "
+            "		case "
+            "			when fact_check_que_date >= ?1 "
+            "					and fact_check_que_date <= ?2 "
+            "					and fact_check_status_id = 2 "
+            "				then fc.fact_check_id end) as ex_check_cnt, "
+            "	count(distinct "
+            "		case "
+            "			when fact_check_que_date >= ?1 "
+            "					and fact_check_que_date <= ?2 "
+            "					and fact_check_status_id = 3 "
+            "				then fc.fact_check_id end) as fl_check_cnt, "
+            "	count(distinct "
+            "		case "
+            "			when fact_check_que_date >= ?1 "
+            "					and fact_check_que_date <= ?2 "
+            "					and fact_check_status_id = 4 "
+            "				then fc.fact_check_id end) as cl_check_cnt "
+            "from user as u "
+            "	left join user_script_link as usl "
+            "		on usl.user_id = u.user_id "
+            "	left join fact_check as fc "
+            "		on fc.user_script_link_id = usl.user_script_link_id "
+            "group by u.user_id, u.user_name",
+            (date_from, date_to))
+        return self._cursor.fetchall()

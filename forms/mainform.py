@@ -5,7 +5,8 @@ from tkinter import ttk, messagebox
 import math
 import datetime
 
-from forms.widgets import DateEntry, TableForm, EntryForm, InputForm, Table
+from forms.widgets import DateEntry, TableForm, EntryForm, InputForm, Table,\
+    DateInputForm, RepTableForm
 from forms.pagination import Pagination
 from core.scriptplugin import ScriptPlugin
 from core.scriptqueue import ScriptQueue
@@ -122,15 +123,15 @@ class MainForm(tk.Tk):
         self._create_form()
 
     def _run_entry_form(self):
-        self._logger.info('Running EntryForm')
+        self._logger.info("Running EntryForm")
         ef = EntryForm(self, self._user_dict)
         self._user_id = ef.get_user_id()
 
     def _create_form(self):
-        self._logger.info('Adding widgets')
+        self._logger.info("Adding widgets")
         self.title("Monitoring system")
         fr_cur_user = tk.Frame(self)
-        fr_cur_user.pack(side="top", fill=tk.Y)
+        fr_cur_user.pack(side="top", fill="y")
         lbl_cur_users = tk.Label(fr_cur_user, text="Текущий пользователь ")
         lbl_cur_users.pack(side="left")
         self._cbx_users = ttk.Combobox(fr_cur_user, width=50, height=10,
@@ -138,7 +139,7 @@ class MainForm(tk.Tk):
                                        state="readonly")
         self._cbx_users.pack(side="left")
         self._cbx_users.current(self._get_user_index())
-        self._cbx_users.bind('<<ComboboxSelected>>', self._on_upd_cbx_users)
+        self._cbx_users.bind("<<ComboboxSelected>>", self._on_upd_cbx_users)
         lbl_cur_check = tk.Label(fr_cur_user,
                                  textvariable=self.sv_current_check_name)
         lbl_cur_check.pack(side="right", padx=30)
@@ -162,6 +163,8 @@ class MainForm(tk.Tk):
         new_item.add_command(label="Лицензия", command=self._about_license)
         new_item.add_command(label="Поиск новых скриптов",
                              command=self._script_srch)
+        new_item.add_command(label="Отчет по пользователям",
+                             command=self._user_rep)
         new_item.add_separator()
         new_item.add_command(label="Выход", command=self._close)
         menu.add_cascade(label="Главная", menu=new_item)
@@ -188,6 +191,30 @@ class MainForm(tk.Tk):
     @staticmethod
     def _about_license():
         messagebox.showinfo("Лицензия", LICENSE)
+
+    def _user_rep(self):
+        dif = DateInputForm(self._log_config, self, "Отчетный период")
+        period = dif.get_period()
+        self._logger.warning(period)
+        date_from = period[0]
+        date_to = period[1]
+        if not date_from or not date_to:
+            return
+        rep_data = None
+        try:
+            rep_data = self._driver.user_rep(date_from, date_to)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Database error",
+                                 f"Ошибка чтения данных из бд: {ex}")
+        tb_headings = ("id", "Пользователь", "Активные скрипты",
+                       "Добавленные скрипты", "Удаленные скрипты",
+                       "Добавлено проверок", "Выполнено проверок",
+                       "Завершено с ошибкой", "Отменено проверок")
+        lbl_text = f"За период с {date_from.strftime('%d.%m.%Y')} " \
+                   f"по {date_to.strftime('%d.%m.%Y')}"
+        RepTableForm(self._log_config, self, lbl_text, tb_headings, rep_data,
+                     title="Отчет по пользователям", btn_exit_txt="Выйти")
 
     def _close(self):
         self.destroy()

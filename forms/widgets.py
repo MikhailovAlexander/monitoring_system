@@ -5,6 +5,61 @@ from tkinter import ttk, messagebox
 import datetime
 
 
+class DateInputForm(tk.Toplevel):
+    """widget for user date input"""
+
+    def __init__(self, log_config, root, lbl_text, btn_entry_txt="OK",
+                 btn_exit_txt="Отмена"):
+        logging.config.dictConfig(log_config)
+        self._logger = logging.getLogger(__name__)
+        self._logger.info("Creating DateInputForm")
+        super().__init__(root)
+        self._log_config = log_config
+        self.grab_set()
+        self._date_from = None
+        self._date_to = None
+        self._create_form(lbl_text, btn_entry_txt, btn_exit_txt)
+        self.attributes("-topmost", True)
+        self.bind("<Return>",  self._btn_entry)
+        self.bind("<Escape>",  self._btn_exit)
+
+    def _create_form(self, lbl_text, btn_entry_txt, btn_exit_txt):
+        self.title("Ввод дат")
+        lbl_description = tk.Label(self, text=lbl_text)
+        lbl_description.grid(row=0, column=0, columnspan=2, sticky="we")
+        self._ed_date_from = DateEntry(self, self._log_config, "с  ")
+        self._ed_date_from.focus_set()
+        self._ed_date_from.grid(row=1, column=0, padx=10)
+        self._ed_date_to = DateEntry(self, self._log_config, "по ")
+        self._ed_date_to.grid(row=1, column=1, padx=10)
+        btn_entry = tk.Button(self, text=btn_entry_txt, command=self._btn_entry)
+        btn_entry.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        btn_exit = tk.Button(self, text=btn_exit_txt, command=self._btn_exit)
+        btn_exit.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+
+    def _btn_entry(self, event=None):
+        date_from = self._ed_date_from.get()
+        date_to = self._ed_date_to.get()
+        if date_from and date_to:
+            self._date_from = date_from
+            self._date_to = date_to
+            self.destroy()
+            return
+        messagebox.showerror("input error", "Необходимо заполнить обе даты")
+
+    def _btn_exit(self, event=None):
+        self._logger.info("Exit DateInputForm")
+        self._date_from = None
+        self._date_to = None
+        self.destroy()
+
+    def get_period(self):
+        """Returns beg date and end date from the DateInputForm"""
+        self._logger.info("Returning result from DateInputForm")
+        self.wait_window()
+        return [self._date_from, self._date_to]
+
+
 class DateEntry(tk.Frame):
     """widget for user date input"""
 
@@ -116,6 +171,36 @@ class TableForm(tk.Toplevel):
         return self._result
 
 
+class RepTableForm(tk.Toplevel):
+    """widget for report table showing"""
+
+    def __init__(self, log_config, root, lbl_text, tb_headings, tb_rows, title,
+                 btn_exit_txt="Отмена"):
+        logging.config.dictConfig(log_config)
+        self._logger = logging.getLogger(__name__)
+        self._logger.info("Creating RepTableForm")
+        super().__init__(root)
+        self.grab_set()
+        self._create_form(lbl_text, title, tb_headings, tb_rows, btn_exit_txt)
+        self.attributes("-topmost", True)
+        self.bind("<Escape>",  self._btn_exit)
+        self.geometry("1200x700")
+
+    def _create_form(self, lbl_text, title, tb_headings, tb_rows, btn_exit_txt):
+        self.title(title)
+        lbl_description = tk.Label(self, text=lbl_text)
+        lbl_description.pack(fill="x", expand=True)
+        self._tb = Table(self, headings=tb_headings)
+        self._tb.insert(tb_rows)
+        self._tb.pack(fill="both", expand=True)
+        btn_exit = tk.Button(self, text=btn_exit_txt, command=self._btn_exit)
+        btn_exit.pack(expand=True)
+
+    def _btn_exit(self, event=None):
+        self._logger.info("Exit RepTableForm")
+        self.destroy()
+
+
 class InputForm(tk.Toplevel):
     """widget for user text input"""
 
@@ -163,7 +248,7 @@ class InputForm(tk.Toplevel):
         self.destroy()
 
     def get_result(self):
-        """Return text, which was inserted in textbox"""
+        """Returns text, which was inserted in the textbox"""
         self._logger.info('Returning result from InputForm')
         self.wait_window()
         return self._result
