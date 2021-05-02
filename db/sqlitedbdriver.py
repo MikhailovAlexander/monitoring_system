@@ -569,6 +569,26 @@ class SqliteDbDriver(BaseDbDriver):
             (fact_check_id,))
         return self._cursor.fetchone()
 
+    def fact_check_get_last(self, user_id, script_id):
+        """
+        :param user_id: identifier from the user table
+        :param script_id - script table record identifier
+        :return fact_check_id value for the last fact_check by script
+
+        """
+        self._cursor.execute(
+            "select fc.fact_check_id "
+            "from fact_check as fc "
+            "	inner join user_script_link as usl "
+            "		on usl.user_script_link_id = fc.user_script_link_id "
+            "where fc.fact_check_status_id = 2 "
+            "	and usl.script_id = ?2 "
+            "	and (usl.user_id = ?1 or ?1 is null) "
+            "order by fc.fact_check_end_date desc "
+            "limit 1",
+            (user_id, script_id))
+        return self._cursor.fetchone()
+
     def object_ins(self, values):
         """Inserts a set of new records in the object table"""
         self._cursor.executemany(

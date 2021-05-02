@@ -490,6 +490,11 @@ class MainForm(tk.Tk):
         btn_show_checks = tk.Button(fr_script_btns, text="Показать проверки",
                                     command=self._on_clk_btn_show_checks)
         btn_show_checks.pack(side="bottom", fill="x", pady=2)
+        btn_show_lst_check = tk.Button(fr_script_btns,
+                                       text="Показать результаты\n"
+                                            "последней проверки",
+                                       command=self._on_clk_btn_show_lst_check)
+        btn_show_lst_check.pack(side="bottom", fill="x", pady=2)
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
                                       self._config["tb_script_row_limit"],
                                       user_id=
@@ -584,6 +589,27 @@ class MainForm(tk.Tk):
         self._iv_showed_script_id.set(script_id)
         self._reset_tb_check_params()
         self._tab.select(2)
+
+    def _on_clk_btn_show_lst_check(self, *args):
+        script_id = self._tb_script.get_selected_id
+        if not script_id:
+            messagebox.showerror("Application error",
+                                 "Скрипт не выбран")
+            return
+        user_id = None if self._iv_all_user_scripts.get() else self._user_id
+        check_id = None
+        try:
+            check_id = self._driver.fact_check_get_last(user_id, script_id)[0]
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Data base error",
+                                 f"Ошибка поиска проверки: {ex}")
+        if check_id:
+            self._show_obj(check_id)
+            self._tab.select(3)
+        else:
+            messagebox.showerror("Application error",
+                                 "Выполненных проверок не найдено")
 
     def _on_upd_iv_showed_script_id(self, *args):
         script_id = self._iv_showed_script_id.get()
@@ -1010,8 +1036,9 @@ class MainForm(tk.Tk):
             messagebox.showerror("Script queue error",
                                  f"Ошибка добавления скрипта в очередь: {ex}")
 
-    def _show_obj(self):
-        check_id = self._tb_check.get_selected_id
+    def _show_obj(self, check_id=None):
+        if not check_id:
+            check_id = self._tb_check.get_selected_id
         if not check_id:
             messagebox.showerror("Application error",
                                  "Проверка не выбрана")

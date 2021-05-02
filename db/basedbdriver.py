@@ -326,6 +326,16 @@ class BaseDbDriver(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def fact_check_get_last(self, user_id, script_id):
+        """
+        :param user_id: identifier from the user table
+        :param script_id - script table record identifier
+        :return fact_check_id value for the last fact_check by script
+
+        """
+        pass
+
+    @abstractmethod
     def object_ins(self, values):
         """Inserts a set of new records in the object table"""
         pass
