@@ -284,6 +284,9 @@ class MainForm(tk.Tk):
         btn_add_user = tk.Button(fr_user_btns, text="Добавить",
                                  command=self._user_add)
         btn_add_user.pack(side="bottom", fill="x", pady=2)
+        btn_rep_user = tk.Button(fr_user_btns, text="Отчет по пользователям",
+                                 command=self._user_rep)
+        btn_rep_user.pack(side="bottom", fill="x", pady=2)
         page_cnt = self._get_page_cnt(self._driver.user_cnt,
                                       self._config["tb_user_row_limit"])
         self._pgn_user = Pagination(fr_controls, 3, page_cnt, prev_button="<<",
