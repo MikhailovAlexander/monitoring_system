@@ -207,6 +207,19 @@ class BaseDbDriver(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def script_rep(self, user_id, script_id, date_from, date_to):
+        """
+
+        :param user_id: identifier from the user table
+        :param script_id - identifier from the script table for report
+        :param date_from: begin date for the report period
+        :param date_to: end date for the report period
+        :return aggregated data about checks by script for the period
+
+        """
+        pass
+
+    @abstractmethod
     def user_script_link_srch(self, user_id, script_id):
         """
 

@@ -498,6 +498,9 @@ class MainForm(tk.Tk):
                                             "последней проверки",
                                        command=self._on_clk_btn_show_lst_check)
         btn_show_lst_check.pack(side="bottom", fill="x", pady=2)
+        btn_rep_script = tk.Button(fr_script_btns, text="Отчет по скрипту",
+                                   command=self._script_rep)
+        btn_rep_script.pack(side="bottom", fill="x", pady=2)
         page_cnt = self._get_page_cnt(self._driver.script_cnt,
                                       self._config["tb_script_row_limit"],
                                       user_id=
@@ -766,6 +769,38 @@ class MainForm(tk.Tk):
             self._logger.exception(ex)
             messagebox.showerror("Script saving error",
                                  f"Ошибка снятия видимости скрипта: {ex}")
+
+    def _script_rep(self):
+        self._logger.info("Script report is running")
+        script_id = self._tb_script.get_selected_id
+        if not script_id:
+            messagebox.showerror("Application error",
+                                 "Скрипт для отчета не выбран")
+        dif = DateInputForm(self._log_config, self, "Отчетный период")
+        period = dif.get_period()
+        self._logger.warning(period)
+        date_from = period[0]
+        date_to = period[1]
+        if not date_from or not date_to:
+            return
+        user_id = None if self._iv_all_user_scripts.get() else self._user_id
+        rep_data = None
+        try:
+            rep_data = self._driver.script_rep(user_id, script_id, date_from,
+                                               date_to)
+        except Exception as ex:
+            self._logger.exception(ex)
+            messagebox.showerror("Database error",
+                                 f"Ошибка чтения данных из бд: {ex}")
+        tb_headings = ("id", "Дата проверки", "Проверено объектов",
+                       "Выявлено объектов", "% выявления",
+                       "Выявлено тривиальных", "% от выявленных",
+                       "Выявлено предупреждений", "% от выявленных",
+                       "Выявлено ошибок", "% от выявленных")
+        lbl_text = f"За период с {date_from.strftime('%d.%m.%Y')} " \
+                   f"по {date_to.strftime('%d.%m.%Y')}"
+        RepTableForm(self._log_config, self, lbl_text, tb_headings, rep_data,
+                     title="Отчет по скрипту", btn_exit_txt="Выйти")
 
     def _get_check_tab(self):
         self._logger.info('Creating check tab')

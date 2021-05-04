@@ -327,6 +327,86 @@ class SqliteDbDriver(BaseDbDriver):
             (user_id,))
         return self._cursor.fetchone()[0]
 
+    def script_rep(self, user_id, script_id, date_from, date_to):
+        """
+
+        :param user_id: identifier from the user table
+        :param script_id - identifier from the script table for report
+        :param date_from: begin date for the report period
+        :param date_to: end date for the report period
+        :return aggregated data about checks by script for the period
+
+        """
+        self._cursor.execute(
+            "with sub as( "
+            "    select "
+            "        row_number() over( "
+            "            partition by date(fc.fact_check_end_date) "
+            "            order by fc.fact_check_end_date desc "
+            "            ) as row_num, "
+            "        fc.fact_check_id, "
+            "        date(fc.fact_check_end_date) as check_date, "
+            "        coalesce(fc.fact_check_obj_count, 0) as check_obj_cnt, "
+            "        coalesce(count(ob.object_id), 0) as obj_cnt, "
+            "        coalesce(count( "
+            "            case "
+            "                when ob.error_level_id = 1 "
+            "                    then ob.object_id "
+            "                end), 0) as tr_obj_cnt, "
+            "        coalesce(count( "
+            "            case "
+            "                when ob.error_level_id = 2 "
+            "                    then ob.object_id "
+            "                end), 0) as wr_obj_cnt, "
+            "        coalesce(count( "
+            "            case "
+            "                when ob.error_level_id = 3 "
+            "                    then ob.object_id "
+            "                end), 0) as er_obj_cnt "
+            "    from fact_check as fc "
+            "        inner join user_script_link as usl "
+            "            on usl.user_script_link_id = fc.user_script_link_id "
+            "        left join object as ob "
+            "            on ob.fact_check_id = fc.fact_check_id "
+            "    where fc.fact_check_end_date between ?3 and ?4 "
+            "        and fc.fact_check_status_id = 2 "
+            "        and (usl.user_id = ?1 or ?1 is null) "
+            "        and usl.script_id = ?2 "
+            "    group by "
+            "        fc.fact_check_id, "
+            "        date(fc.fact_check_end_date), "
+            "        fc.fact_check_obj_count "
+            ") "
+            " "
+            "select "
+            "    sub.fact_check_id, "
+            "    sub.check_date, "
+            "    sub.check_obj_cnt, "
+            "    sub.obj_cnt, "
+            "    case "
+            "        when sub.check_obj_cnt > 0 "
+            "            then round(sub.obj_cnt * 100 / sub.check_obj_cnt, 2) "
+            "        else 0 end as perc_obj_cnt, "
+            "    sub.tr_obj_cnt, "
+            "    case "
+            "        when sub.obj_cnt > 0 "
+            "            then round(sub.tr_obj_cnt * 100 / sub.obj_cnt, 2) "
+            "        else 0 end as perc_tr_obj_cnt, "
+            "    sub.wr_obj_cnt, "
+            "    case "
+            "        when sub.obj_cnt > 0 "
+            "            then round(sub.wr_obj_cnt * 100 / sub.obj_cnt, 2) "
+            "        else 0 end as perc_wr_obj_cnt, "
+            "    sub.er_obj_cnt, "
+            "    case "
+            "        when sub.obj_cnt > 0 "
+            "            then round(sub.er_obj_cnt * 100 / sub.obj_cnt, 2) "
+            "        else 0 end as perc_er_obj_cnt "
+            "from sub "
+            "where sub.row_num = 1 ",
+            (user_id, script_id, date_from, date_to))
+        return self._cursor.fetchall()
+
     def user_script_link_srch(self, user_id, script_id):
         """
 
