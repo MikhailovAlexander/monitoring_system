@@ -776,6 +776,7 @@ class MainForm(tk.Tk):
         if not script_id:
             messagebox.showerror("Application error",
                                  "Скрипт для отчета не выбран")
+            return
         dif = DateInputForm(self._log_config, self, "Отчетный период")
         period = dif.get_period()
         self._logger.warning(period)
@@ -800,7 +801,8 @@ class MainForm(tk.Tk):
         lbl_text = f"За период с {date_from.strftime('%d.%m.%Y')} " \
                    f"по {date_to.strftime('%d.%m.%Y')}"
         RepTableForm(self._log_config, self, lbl_text, tb_headings, rep_data,
-                     title="Отчет по скрипту", btn_exit_txt="Выйти")
+                     title="Отчет по скрипту", btn_exit_txt="Выйти",
+                     has_plot=True)
 
     def _get_check_tab(self):
         self._logger.info('Creating check tab')

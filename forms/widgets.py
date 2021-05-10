@@ -4,6 +4,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import datetime
 
+from forms.repplot import RepPlot
+
 
 class DateInputForm(tk.Toplevel):
     """widget for user date input"""
@@ -150,13 +152,13 @@ class TableForm(tk.Toplevel):
         btn_exit.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
     def _btn_entry(self, event=None):
-        self._logger.info('Enter on TableForm')
+        self._logger.info("Enter on TableForm")
         value = self._tb.get_selected_value(0)
         if value:
             self._result = value
             self.destroy()
             return
-        self._logger.warning('Row is not selected')
+        self._logger.warning("Row is not selected")
         messagebox.showerror("select error", "Ни одна строка не выбрана")
 
     def _btn_exit(self, event=None):
@@ -166,7 +168,7 @@ class TableForm(tk.Toplevel):
 
     def get_result(self):
         """Return text, which was inserted in textbox"""
-        self._logger.info('Returning result from TableForm')
+        self._logger.info("Returning result from TableForm")
         self.wait_window()
         return self._result
 
@@ -175,24 +177,29 @@ class RepTableForm(tk.Toplevel):
     """widget for report table showing"""
 
     def __init__(self, log_config, root, lbl_text, tb_headings, tb_rows, title,
-                 btn_exit_txt="Отмена"):
+                 btn_exit_txt="Отмена", has_plot=False):
         logging.config.dictConfig(log_config)
         self._logger = logging.getLogger(__name__)
         self._logger.info("Creating RepTableForm")
         super().__init__(root)
         self.grab_set()
-        self._create_form(lbl_text, title, tb_headings, tb_rows, btn_exit_txt)
+        self._create_form(lbl_text, title, tb_headings, tb_rows, btn_exit_txt,
+                          has_plot)
         self.attributes("-topmost", True)
         self.bind("<Escape>",  self._btn_exit)
         self.geometry("1200x700")
 
-    def _create_form(self, lbl_text, title, tb_headings, tb_rows, btn_exit_txt):
+    def _create_form(self, lbl_text, title, tb_headings, tb_rows, btn_exit_txt,
+                     has_plot):
         self.title(title)
         lbl_description = tk.Label(self, text=lbl_text)
         lbl_description.pack(fill="x", expand=True)
         self._tb = Table(self, headings=tb_headings)
         self._tb.insert(tb_rows)
         self._tb.pack(fill="both", expand=True)
+        if has_plot:
+            plot = RepPlot(self, tb_rows)
+            plot.pack(fill="both", expand=True)
         btn_exit = tk.Button(self, text=btn_exit_txt, command=self._btn_exit)
         btn_exit.pack(expand=True)
 
@@ -204,18 +211,18 @@ class RepTableForm(tk.Toplevel):
 class InputForm(tk.Toplevel):
     """widget for user text input"""
 
-    def __init__(self, log_config, root, lbl_text, btn_entry_txt='OK',
-                 btn_exit_txt='Отмена', default_value=None):
+    def __init__(self, log_config, root, lbl_text, btn_entry_txt="OK",
+                 btn_exit_txt="Отмена", default_value=None):
         logging.config.dictConfig(log_config)
         self._logger = logging.getLogger(__name__)
-        self._logger.info('Creating InputForm')
+        self._logger.info("Creating InputForm")
         super().__init__(root)
         self.grab_set()
         self._result = None
         self._create_form(lbl_text, btn_entry_txt, btn_exit_txt, default_value)
         self.attributes("-topmost", True)
-        self.bind('<Return>',  self._btn_entry)
-        self.bind('<Escape>',  self._btn_exit)
+        self.bind("<Return>",  self._btn_entry)
+        self.bind("<Escape>",  self._btn_exit)
 
     def _create_form(self, lbl_text, btn_entry_txt, btn_exit_txt,
                      default_value):
@@ -233,23 +240,23 @@ class InputForm(tk.Toplevel):
         btn_exit.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
     def _btn_entry(self, event=None):
-        self._logger.info('Enter on InputForm')
+        self._logger.info("Enter on InputForm")
         value = self._entry.get()
         if value and str(value).strip():
             self._result = self._entry.get()
             self.destroy()
             return
-        self._logger.warning('Text box is empty')
+        self._logger.warning("Text box is empty")
         messagebox.showerror("input error", "Поле ввода не заполнено")
 
     def _btn_exit(self, event=None):
-        self._logger.info('Exit InputForm')
+        self._logger.info("Exit InputForm")
         self._result = None
         self.destroy()
 
     def get_result(self):
         """Returns text, which was inserted in the textbox"""
-        self._logger.info('Returning result from InputForm')
+        self._logger.info("Returning result from InputForm")
         self.wait_window()
         return self._result
 
@@ -264,8 +271,8 @@ class EntryForm(tk.Toplevel):
         self._cbx_users = None
         self._create_form()
         self._user_id = -1
-        self.bind('<Return>',  self._btn_entry)
-        self.bind('<Escape>',  self._btn_exit)
+        self.bind("<Return>",  self._btn_entry)
+        self.bind("<Escape>",  self._btn_exit)
 
     def _create_form(self):
         self.title("Monitoring system")
@@ -343,7 +350,7 @@ class Table(tk.Frame):
 
         """
         if self._table.focus() and column_idx < len(self._table["columns"]):
-            return self._table.item(self._table.focus())['values'][column_idx]
+            return self._table.item(self._table.focus())["values"][column_idx]
 
     def clear(self):
         """Removes all rows from table"""
@@ -356,4 +363,4 @@ class Table(tk.Frame):
 
         """
         for row in rows:
-            self._table.insert('', tk.END, values=tuple(row))
+            self._table.insert("", "end", values=tuple(row))
