@@ -231,8 +231,8 @@ class SqliteDbDriver(BaseDbDriver):
             "				and usl.script_id = s.script_id "
             "				and usl.user_script_link_end_date is null))"
             "   and (?4 is null or script_name like '%' || ?4 || '%') "
-            "   and (?5 is null or date(script_beg_date) >= ?5) "
-            "   and (?6 is null or date(script_beg_date) <= ?6) "
+            "   and (?5 is null or date(script_beg_date) >= date(?5)) "
+            "   and (?6 is null or date(script_beg_date) <= date(?6)) "
             "limit ?1 offset ?2",
             (limit, offset, user_id, name_pattern, date_from, date_to))
         return self._cursor.fetchall()
@@ -368,7 +368,8 @@ class SqliteDbDriver(BaseDbDriver):
             "            on usl.user_script_link_id = fc.user_script_link_id "
             "        left join object as ob "
             "            on ob.fact_check_id = fc.fact_check_id "
-            "    where fc.fact_check_end_date between ?3 and ?4 "
+            "    where date(fc.fact_check_end_date) "
+            "            between date(?3) and date(?4) "
             "        and fc.fact_check_status_id = 2 "
             "        and (usl.user_id = ?1 or ?1 is null) "
             "        and usl.script_id = ?2 "
@@ -492,8 +493,8 @@ class SqliteDbDriver(BaseDbDriver):
             "	and (?3 is null or ?3 = s.script_id)"
             "   and (?4 is null or u.user_name like '%' || ?4 || '%') "
             "   and (?5 is null or s.script_name like '%' || ?5 || '%') "
-            "   and (?6 is null or date(fc.fact_check_que_date) >= ?6) "
-            "   and (?7 is null or date(fc.fact_check_que_date) <= ?7) ",
+            "   and (?6 is null or date(fc.fact_check_que_date) >= date(?6)) "
+            "   and (?7 is null or date(fc.fact_check_que_date) <= date(?7)) ",
             (status_id, user_id, script_id, user_name_pattern,
              script_name_pattern, date_from, date_to))
         return self._cursor.fetchone()[0]
@@ -574,8 +575,8 @@ class SqliteDbDriver(BaseDbDriver):
             "	and (?5 is null or ?5 = s.script_id)"
             "   and (?6 is null or u.user_name like '%' || ?6 || '%') "
             "   and (?7 is null or s.script_name like '%' || ?7 || '%') "
-            "   and (?8 is null or date(fc.fact_check_que_date) >= ?8) "
-            "   and (?9 is null or date(fc.fact_check_que_date) <= ?9) "
+            "   and (?8 is null or date(fc.fact_check_que_date) >= date(?8)) "
+            "   and (?9 is null or date(fc.fact_check_que_date) <= date(?9)) "
             "limit ?1 offset ?2",
             (limit, offset, status_id, user_id, script_id, user_name_pattern,
              script_name_pattern, date_from, date_to))
@@ -735,10 +736,10 @@ class SqliteDbDriver(BaseDbDriver):
             "	and (?5 is null or ?5 = ob.error_level_id)"
             "   and (?6 is null or ob.object_name like '%' || ?6 || '%') "
             "   and (?7 is null or s.script_name like '%' || ?7 || '%') "
-            "   and (?8 is null or date(fc.fact_check_end_date) >= ?8) "
-            "   and (?9 is null or date(fc.fact_check_end_date) <= ?9) "
-            "   and (?10 is null or date(ob.object_date) >= ?10) "
-            "   and (?11 is null or date(ob.object_date) <= ?11) "
+            "   and (?8 is null or date(fc.fact_check_end_date) >= date(?8)) "
+            "   and (?9 is null or date(fc.fact_check_end_date) <= date(?9)) "
+            "   and (?10 is null or date(ob.object_date) >= date(?10)) "
+            "   and (?11 is null or date(ob.object_date) <= date(?11)) "
             "limit ?1 offset ?2",
             (limit, offset, user_id, fact_check_id, error_level_id,
              object_name_pattern, script_name_pattern, fact_check_end_date_from,
@@ -783,10 +784,10 @@ class SqliteDbDriver(BaseDbDriver):
             "	and (?3 is null or ?3 = ob.error_level_id)"
             "   and (?4 is null or ob.object_name like '%' || ?4 || '%') "
             "   and (?5 is null or s.script_name like '%' || ?5 || '%') "
-            "   and (?6 is null or date(fc.fact_check_end_date) >= ?6) "
-            "   and (?7 is null or date(fc.fact_check_end_date) <= ?7) "
-            "   and (?8 is null or date(ob.object_date) >= ?8) "
-            "   and (?9 is null or date(ob.object_date) <= ?9) ",
+            "   and (?6 is null or date(fc.fact_check_end_date) >= date(?6)) "
+            "   and (?7 is null or date(fc.fact_check_end_date) <= date(?7)) "
+            "   and (?8 is null or date(ob.object_date) >= date(?8)) "
+            "   and (?9 is null or date(ob.object_date) <= date(?9)) ",
             (user_id, fact_check_id, error_level_id, object_name_pattern,
              script_name_pattern, fact_check_end_date_from,
              fact_check_end_date_to, object_date_from, object_date_to))
@@ -806,41 +807,41 @@ class SqliteDbDriver(BaseDbDriver):
             "	u.user_name, "
             "	count(distinct "
             "		case "
-            "			when user_script_link_beg_date <= ?2 "
-            "					and (user_script_link_end_date >?2 "
+            "			when date(user_script_link_beg_date) <= date(?2) "
+            "					and (date(user_script_link_end_date) >date(?2) "
             "					or user_script_link_end_date is null) "
             "				then usl.script_id end) as active_script_cnt, "
             "	count(distinct "
             "		case "
-            "			when user_script_link_beg_date >= ?1 "
-            "					and user_script_link_beg_date <= ?2 "
+            "			when date(user_script_link_beg_date) >= date(?1) "
+            "					and date(user_script_link_beg_date) <=date(?2) "
             "				then usl.script_id end) as add_script_cnt, "
             "	count(distinct "
             "		case "
-            "			when user_script_link_end_date >= ?1 "
-            "					and user_script_link_end_date <= ?2 "
+            "			when date(user_script_link_end_date) >= date(?1) "
+            "					and date(user_script_link_end_date) <=date(?2) "
             "				then usl.script_id end) as del_script_cnt, "
             "	count(distinct "
             "		case "
-            "			when fact_check_que_date >= ?1 "
-            "					and fact_check_que_date <= ?2 "
+            "			when date(fact_check_que_date) >= date(?1) "
+            "					and date(fact_check_que_date) <= date(?2) "
             "				then fc.fact_check_id end) as add_check_cnt, "
             "	count(distinct "
             "		case "
-            "			when fact_check_que_date >= ?1 "
-            "					and fact_check_que_date <= ?2 "
+            "			when date(fact_check_que_date) >= date(?1) "
+            "					and date(fact_check_que_date) <= date(?2) "
             "					and fact_check_status_id = 2 "
             "				then fc.fact_check_id end) as ex_check_cnt, "
             "	count(distinct "
             "		case "
-            "			when fact_check_que_date >= ?1 "
-            "					and fact_check_que_date <= ?2 "
+            "			when date(fact_check_que_date) >= date(?1) "
+            "					and date(fact_check_que_date) <= date(?2) "
             "					and fact_check_status_id = 3 "
             "				then fc.fact_check_id end) as fl_check_cnt, "
             "	count(distinct "
             "		case "
-            "			when fact_check_que_date >= ?1 "
-            "					and fact_check_que_date <= ?2 "
+            "			when date(fact_check_que_date) >= date(?1) "
+            "					and date(fact_check_que_date) <= date(?2) "
             "					and fact_check_status_id = 4 "
             "				then fc.fact_check_id end) as cl_check_cnt "
             "from user as u "

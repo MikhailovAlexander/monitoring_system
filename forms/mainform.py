@@ -1139,7 +1139,7 @@ class MainForm(tk.Tk):
         en_obj_name = tk.Entry(fr_obj_controls, textvariable=self._sv_obj_name)
         en_obj_name.pack(fill="x", expand=True)
         cb_period_checks = tk.Checkbutton(fr_obj_controls,
-                                          text="По проерке за период",
+                                          text="По проверке за период",
                                           variable=self._iv_period_checks_obj,
                                           padx=15, pady=10)
         cb_period_checks.pack(fill="x", expand=True)
