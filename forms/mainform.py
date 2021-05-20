@@ -64,7 +64,7 @@ class MainForm(tk.Tk):
         self.sv_current_check_name = tk.StringVar(value="NO SCRIPT")
         self.iv_current_check_id = tk.IntVar()
         self._sv_user_name = tk.StringVar()
-        self._sv_user_name.trace("w", self._on_upd_sv_user_name)
+        self._sv_user_name.trace("w", self._refresh_tb_user)
         self._tb_user = None
         self._pgn_user = None
         self._iv_showed_script_id = tk.IntVar()
@@ -72,7 +72,7 @@ class MainForm(tk.Tk):
         self._iv_all_user_scripts = tk.IntVar(value=1)
         self._iv_all_user_scripts.trace("w", self._refresh_tb_script)
         self._sv_script_name = tk.StringVar()
-        self._sv_script_name.trace("w", self._on_upd_sv_script_name)
+        self._sv_script_name.trace("w", self._refresh_tb_script)
         self._iv_period_scripts = tk.IntVar(value=0)
         self._iv_period_scripts.trace("w", self._on_upd_iv_period_scripts)
         self._ed_script_date_from = None
@@ -305,10 +305,7 @@ class MainForm(tk.Tk):
         return fr_user_tab
 
     def _load_user_page(self, page_num):
-        user_name_pattern = None
-        value = self._sv_user_name.get()
-        if value and value.strip():
-            user_name_pattern = value
+        user_name_pattern = self._sv_user_name.get()
         offset = (page_num - 1) * self._config["tb_user_row_limit"]
         users_rec = None
         try:
@@ -344,12 +341,7 @@ class MainForm(tk.Tk):
                                  f"Ошибка чтения пользователей из БД: {ex}")
             return {}
 
-    def _on_upd_sv_user_name(self, *args):
-        value = self._sv_user_name.get()
-        if value and value.strip():
-            self._refresh_tb_user()
-
-    def _refresh_tb_user(self):
+    def _refresh_tb_user(self, *args):
         cur_page = self._pgn_user.current_page
         cur_page_cnt = self._pgn_user.total_pages
         page_cnt = self._get_page_cnt(self._driver.user_cnt,
@@ -527,10 +519,7 @@ class MainForm(tk.Tk):
         limit = self._config["tb_script_row_limit"]
         offset = (page_num - 1) * limit
         user_id = None if self._iv_all_user_scripts.get() else self._user_id
-        name_pattern = None
-        value = self._sv_script_name.get()
-        if value and value.strip():
-            name_pattern = value
+        name_pattern = self._sv_script_name.get()
         date_from = self._ed_script_date_from.get()
         date_to = self._ed_script_date_to.get()
         script_rec = None
@@ -547,11 +536,6 @@ class MainForm(tk.Tk):
         self._tb_script.clear()
         if script_rec:
             self._tb_script.insert(script_rec)
-
-    def _on_upd_sv_script_name(self, *args):
-        value = self._sv_script_name.get()
-        if value and value.strip():
-            self._refresh_tb_script()
 
     def _on_upd_iv_period_scripts(self, *args):
         if self._iv_period_scripts.get():
