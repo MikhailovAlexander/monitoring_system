@@ -573,8 +573,7 @@ class MainForm(tk.Tk):
     def _on_clk_btn_show_checks(self, *args):
         script_id = self._tb_script.get_selected_id
         if not script_id:
-            messagebox.showerror("Application error",
-                                 "Скрипт не выбран")
+            messagebox.showerror("Application error", "Скрипт не выбран")
             return
         self._iv_showed_script_id.set(script_id)
         self._reset_tb_check_params()
@@ -583,13 +582,14 @@ class MainForm(tk.Tk):
     def _on_clk_btn_show_lst_check(self, *args):
         script_id = self._tb_script.get_selected_id
         if not script_id:
-            messagebox.showerror("Application error",
-                                 "Скрипт не выбран")
+            messagebox.showerror("Application error", "Скрипт не выбран")
             return
         user_id = None if self._iv_all_user_scripts.get() else self._user_id
         check_id = None
         try:
-            check_id = self._driver.fact_check_get_last(user_id, script_id)[0]
+            res = self._driver.fact_check_get_last(user_id, script_id)
+            if res:
+                check_id = res[0]
         except Exception as ex:
             self._logger.exception(ex)
             messagebox.showerror("Data base error",
