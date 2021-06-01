@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev menu bar was updated">
+    <list default="true" id="9e886634-649b-4fc8-aedd-73c8a4071ec6" name="Default Changelist" comment="#dev bug in last check searching method  was fixed">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/basedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/basedbdriver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/sqlitedbdriver.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlitedbdriver.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms/mainform.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/mainform.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms/widgets.py" beforeDir="false" afterPath="$PROJECT_DIR$/forms/widgets.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/logger_conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/core/logger_conf.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +20,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="dev" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -48,10 +45,11 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="run.code.analysis.last.selected.profile" value="aDefault" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\vestr\source\repos\monitoring_system\logs" />
       <recent name="C:\Users\vestr\source\repos\monitoring_system\db" />
       <recent name="C:\Users\vestr\source\repos\monitoring_system\core" />
     </key>
@@ -293,7 +291,35 @@
       <option name="project" value="LOCAL" />
       <updated>1617470549991</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="#dev mock scripts for testing was added">
+      <created>1621533737899</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1621533737899</updated>
+    </task>
+    <task id="LOCAL-00018" summary="#dev bugs in filters was fixed">
+      <created>1621536779547</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1621536779547</updated>
+    </task>
+    <task id="LOCAL-00019" summary="#dev bugs in filters was fixed">
+      <created>1621538746326</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1621538746326</updated>
+    </task>
+    <task id="LOCAL-00020" summary="#dev bug in last check searching method  was fixed">
+      <created>1621539157030</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1621539157030</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -351,6 +377,9 @@
     <MESSAGE value="#dev object tab was added" />
     <MESSAGE value="#dev horizontal scroll for table added" />
     <MESSAGE value="#dev menu bar was updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="#dev menu bar was updated" />
+    <MESSAGE value="#dev mock scripts for testing was added" />
+    <MESSAGE value="#dev bugs in filters was fixed" />
+    <MESSAGE value="#dev bug in last check searching method  was fixed" />
+    <option name="LAST_COMMIT_MESSAGE" value="#dev bug in last check searching method  was fixed" />
   </component>
 </project>

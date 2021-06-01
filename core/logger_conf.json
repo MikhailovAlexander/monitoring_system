@@ -16,7 +16,7 @@
             "level": "DEBUG",
             "formatter": "standard",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "./app.log",
+            "filename": "./logs/app.log",
             "encoding": "utf8",
             "maxBytes": 10240000,
             "backupCount": 5
@@ -24,8 +24,8 @@
     },
     "loggers": {
         "" : {
-            "handlers": ["default"],
-            "level": "INFO",
+            "handlers": ["file_handler"],
+            "level": "WARNING",
             "propagate": true
         }
     }
